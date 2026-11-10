@@ -7,7 +7,7 @@ canonical id is a pointer for the later mapping (BAS-350); the collector writes 
 
 from dataclasses import dataclass
 
-from sofascore.sports import BASKETBALL, HOCKEY, Sport
+from sofascore.sports import BASKETBALL, Sport
 
 
 @dataclass(frozen=True)
@@ -78,7 +78,6 @@ LEAGUES: tuple[SofascoreLeague, ...] = (
     SofascoreLeague(23647, BASKETBALL, 1073, "Paulista, 1ª Divisão"),
     SofascoreLeague(30548, BASKETBALL, 1513, "2. ZLS, Women"),
     SofascoreLeague(30720, BASKETBALL, 1264, "Super Cup"),
-    SofascoreLeague(28754, HOCKEY, 2101, "U20 Extraliga Junioru"),
 )
 
 BY_TID: dict[int, SofascoreLeague] = {league.tid: league for league in LEAGUES}

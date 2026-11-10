@@ -42,8 +42,7 @@ arrive in any order.
 | `sofascore_standings` | `tid, season_id, standings_type, block_id, team_id` | total/home/away tables, every group block, promotion labels |
 | `v_sofascore_coverage` | `tid, season_id` | games, finished, open, with team stats, with player stats, standings tables, queue pending/failed/none_available |
 
-Every table has `sport` (`basketball` / `hockey`). `sofascore_events.home_p1..p4` are quarters in
-basketball, periods 1-3 in hockey; `home_penalties` is the hockey shootout tally.
+Every table has `sport` (`basketball`). `sofascore_events.home_p1..p4` are the quarters.
 
 Queue item status: `pending → in_progress → collected → parsed`, `none_available` on a 404 (no
 schedule left, no stats for a game, a cup without standings), `failed` after 5 attempts with
@@ -85,7 +84,7 @@ and `--max-minutes`/`--max-items`. One run at a time (`/tmp/sofascore_run.lock`)
   0 (the whole schedule is re-walked: new rounds, re-dates, postponements, cancellations), the
   standings and the rounds. Unchanged pages are 304s.
 - **Fast run** (`sofascore-fast`, every 30 min): `/event/{id}` for games that are not finished in
-  our rows and started 100 minutes (hockey 130) to 48 hours ago. A finished game then queues its
+  our rows and started 100 minutes to 48 hours ago. A finished game then queues its
   stats and lineups. These items jump the queue; backfill items wait for the next daily.
 - **Correction re-checks**: a finished game is fetched again 6 h, 36 h and 7 days later, then
   frozen. If a re-check finds a changed payload, its stats and lineups are fetched again.
@@ -99,7 +98,7 @@ and `--max-minutes`/`--max-items`. One run at a time (`/tmp/sofascore_run.lock`)
 
 ## Cost
 
-About 700 requests an hour (a 4–6 s pause plus the response). Full history of the 58 leagues:
+About 700 requests an hour (a 4–6 s pause plus the response). Full history of the 57 leagues:
 about 3,000 requests for tournaments, seasons, game pages and teams, plus about 2 per finished
 game for stats and lineups (up to ~50,000), plus 4 per season for standings and rounds: roughly
 3 days, once, resumable. A daily pass is a few hundred mostly-304 requests (25–50 minutes); a
