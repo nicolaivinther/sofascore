@@ -12,9 +12,10 @@ jobs:
 
     steps:
       - name: Pull latest changes
-        # Cron picks up the new code on its next run. Migrations are applied by hand only.
+        # Full paths: the runner's PATH has no /opt/homebrew/bin. Cron picks up the new code on its
+        # next run. Migrations are applied by hand only.
         run: |
           cd /Users/nicolaitanghoj/dev/sofascore &&
           git pull --ff-only origin main &&
-          /opt/homebrew/bin/poetry env use python3.13 &&
+          /opt/homebrew/bin/poetry env use /opt/homebrew/bin/python3.13 &&
           /opt/homebrew/bin/poetry sync --no-interaction
