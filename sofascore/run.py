@@ -10,7 +10,7 @@
 Every command takes ``--dry-run`` (plan and report; write and fetch nothing), ``--sport`` and
 ``--tid``. The rules (fetch once when done, re-check +6h/+36h/+7d, freeze) are in ARCHITECTURE.md.
 
-Exit codes: 0 done, 2 Sofascore is blocking the client (sustained 403).
+Exit codes: 0 done (or cooling down after a block), 2 Sofascore refused us and the run stopped.
 """
 
 from __future__ import annotations
@@ -20,8 +20,10 @@ import fcntl
 import sys
 import time
 from collections import Counter
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 from sofascore import loader, planning, store
@@ -46,8 +48,13 @@ FAST_MAX_AGE_HOURS = 48
 GHOST_HOURS = 36
 # One collector at a time (cron or by hand), so Sofascore never sees two clients at once.
 LOCK_PATH = "/tmp/sofascore_run.lock"  # nosec B108 — a lock file, no data
-# Worker time budget per command, minutes (a daily pass is a few hundred mostly-304 requests).
-BUDGET_MINUTES = {"fast": 20.0, "daily": 30.0, "backfill": 720.0, "work": 720.0}
+# Worker time budget per command, minutes. At 3-5 s a request a daily pass (a few hundred mostly
+# 304s) takes 20-40 minutes; a full backfill runs for days and can be resumed at any point.
+BUDGET_MINUTES = {"fast": 25.0, "daily": 90.0, "backfill": 4320.0, "work": 4320.0}
+# A backfill waits out a block (SOFASCORE_COOLDOWN_MIN) at most this often per run; the cron runs
+# stop at the first one.
+MAX_COOLDOWNS = {"backfill": 3, "work": 3}
+BLOCK_MARKER = "sofascore_blocked_until"
 
 # A season is complete when it is not its tournament's newest season, nothing in it is scheduled
 # or live, its newest game is past the grace period, and its schedule page 404s.
@@ -252,15 +259,49 @@ def process(cur: Any, client: SofascoreClient, item: store.Claimed, stats: WorkS
         store.mark_parsed(cur, item)
 
 
-def work(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+@dataclass
+class BlockPolicy:
+    """What a run does when Sofascore refuses a request (403/429).
+
+    Every refusal writes ``marker`` (blocked until now + ``cooldown_minutes``), which every run
+    checks before it starts, so neither cron nor a manual run asks Sofascore again too soon. A
+    run with ``max_cooldowns`` waits the cooldown out and carries on; a refusal on the first
+    request after a cooldown, or one cooldown too many, stops the run.
+    """
+
+    cooldown_minutes: float
+    max_cooldowns: int = 0
+    marker: Path | None = None
+    sleep: Callable[[float], None] = time.sleep
+
+    def blocked_until(self) -> datetime | None:
+        """The end of the current cooldown, or None."""
+        if self.marker is None or not self.marker.exists():
+            return None
+        until = datetime.fromisoformat(self.marker.read_text(encoding="utf-8").strip())
+        return until if until > datetime.now(UTC) else None
+
+    def record_block(self) -> datetime:
+        """Write the marker; returns the end of the cooldown."""
+        until = datetime.now(UTC) + timedelta(minutes=self.cooldown_minutes)
+        if self.marker is not None:
+            self.marker.parent.mkdir(parents=True, exist_ok=True)
+            self.marker.write_text(until.isoformat(), encoding="utf-8")
+        return until
+
+
+def work(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches
     conn: Any,
     client: SofascoreClient,
     sports: Sequence[str],
     max_minutes: float,
     max_items: int | None = None,
     max_priority: int | None = None,
+    block_policy: BlockPolicy | None = None,
 ) -> WorkStats:
     """Drain the queue: one item per transaction, until it is empty or a limit is hit."""
+    policy = block_policy or BlockPolicy(cooldown_minutes=0)
+    cooldowns, just_cooled = 0, False
     stats = WorkStats()
     deadline = time.monotonic() + max_minutes * 60
     with conn.cursor() as cur:
@@ -278,12 +319,23 @@ def work(  # pylint: disable=too-many-arguments,too-many-positional-arguments,to
             try:
                 process(cur, client, item, stats)
                 conn.commit()
-            except SofascoreBlockedError:
+                just_cooled = False
+            except SofascoreBlockedError as exc:
                 conn.rollback()
                 with conn.cursor() as cur2:
-                    store.fail(cur2, item, "blocked (sustained 403)", MAX_ATTEMPTS, 60)
+                    store.release(cur2, item)
                 conn.commit()
-                raise
+                until = policy.record_block()
+                stats.counts["blocked"] += 1
+                if just_cooled or cooldowns >= policy.max_cooldowns:
+                    raise
+                cooldowns, just_cooled = cooldowns + 1, True
+                logger.warning(
+                    "%s; nothing is asked until %s (cooldown %d)", exc, until.isoformat(), cooldowns
+                )
+                policy.sleep(policy.cooldown_minutes * 60)
+                deadline += policy.cooldown_minutes * 60
+                continue
             except Exception as exc:  # pylint: disable=broad-except
                 conn.rollback()
                 with conn.cursor() as cur2:
@@ -386,13 +438,24 @@ def main(  # pylint: disable=too-many-return-statements,too-many-locals
         except BlockingIOError:
             logger.info("another Sofascore run holds %s; exiting", LOCK_PATH)
             return 0
+        policy = BlockPolicy(
+            cooldown_minutes=config.SOFASCORE_COOLDOWN_MIN,
+            max_cooldowns=MAX_COOLDOWNS.get(args.command, 0),
+            marker=Path(config.SOFASCORE_STATE_DIR) / BLOCK_MARKER,
+        )
+        until = policy.blocked_until()
+        if until is not None:
+            logger.info(
+                "Sofascore refused us earlier; cooling down until %s, not asking now", until.isoformat()
+            )
+            return 0
         _plan(conn, args.command, leagues, sports, args.dry_run)
         if args.dry_run:
             return 0
         # The fast run does only its own games (and the teams/stats they bring); the backfill's
         # items wait for a daily or backfill run.
         max_priority = planning.PRIORITY_TEAM if args.command == "fast" else None
-        client = SofascoreClient(delay_seconds=config.SOFASCORE_DELAY_S)
+        client = SofascoreClient(pause_seconds=(config.SOFASCORE_PAUSE_MIN_S, config.SOFASCORE_PAUSE_MAX_S))
         stats = work(
             conn,
             client,
@@ -400,6 +463,7 @@ def main(  # pylint: disable=too-many-return-statements,too-many-locals
             args.max_minutes or BUDGET_MINUTES[args.command],
             args.max_items,
             max_priority,
+            policy,
         )
         logger.info("%s: %s", args.command, stats.summary())
         return 0

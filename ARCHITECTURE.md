@@ -5,9 +5,15 @@
 - `www.sofascore.com/api/v1/...` answers a real browser and the `cloudscraper` Firefox/Windows
   profile (`client.DEFAULT_BROWSER`). `api.sofascore.com` 403s every profile; plain `requests` is
   fingerprint-blocked. No key, login or cookies.
-- A sustained 403 stops the run (`SofascoreBlockedError`, exit code 2, Sentry): the fingerprint
-  defence changed. Re-probe by hand; don't loop. Fallback if cloudscraper stops working:
-  `curl_cffi` (browser TLS impersonation), not installed.
+- **Rate limit:** at 2.7 requests a second Sofascore answered 403 after about 1,500 requests
+  (2026-11-10). So the client pauses a random 3–5 s between requests and never retries a 403/429:
+  it raises `SofascoreBlockedError`, the item goes back to pending (no attempt counted), and
+  `logs/sofascore_blocked_until` stops every run from asking for 60 minutes. A backfill waits the
+  hour out and carries on (at most 3 times per run); a refusal on the first request after a
+  cooldown, or in a cron run, stops the run (exit code 2, Sentry).
+- If 403s persist after cooldowns, the fingerprint defence may have changed: re-probe by hand,
+  never loop. Fallback if cloudscraper stops working: `curl_cffi` (browser TLS impersonation),
+  not installed.
 - To look at the API by hand, open any `https://www.sofascore.com/api/v1/...` URL in a browser,
   or `fetch('/api/v1/...')` from a sofascore.com page. The category list
   (`/sport/basketball/categories`) hides out-of-season countries; `/search/unique-tournaments?q=`
@@ -92,10 +98,11 @@ and `--max-minutes`/`--max-items`. One run at a time (`/tmp/sofascore_run.lock`)
 
 ## Cost
 
-About 2-3 requests a second. Full history of the 58 leagues: about 3,000 requests for
-tournaments, seasons, game pages and teams, plus about 2 per finished game for stats and lineups
-(up to ~50,000, 6-7 hours, once), plus 4 per season for standings and rounds. A daily pass is a
-few hundred mostly-304 requests; a fast run a few to ~30.
+About 900 requests an hour (a 3–5 s pause plus the response). Full history of the 58 leagues:
+about 3,000 requests for tournaments, seasons, game pages and teams, plus about 2 per finished
+game for stats and lineups (up to ~50,000), plus 4 per season for standings and rounds: roughly
+2–3 days, once, resumable. A daily pass is a few hundred mostly-304 requests (20–40 minutes); a
+fast run a few to ~30.
 
 ## Status queries
 

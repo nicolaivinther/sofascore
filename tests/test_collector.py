@@ -328,16 +328,63 @@ def test_reparse_rebuilds_the_typed_tables(conn):
     assert _q(conn, "SELECT COUNT(*) FROM sofascore_seasons") == [(2,)]
 
 
-def test_block_stops_the_run_and_keeps_the_item(conn):
+class OneBlock(FakeClient):
+    """Refuses the first ``refusals`` requests, then serves the routes."""
+
+    def __init__(self, routes, refusals):
+        super().__init__(routes)
+        self.refusals = refusals
+
+    def get(self, path, etag=None):
+        if self.refusals:
+            self.refusals -= 1
+            self.calls.append((path, etag))
+            self.request_count += 1
+            raise SofascoreBlockedError("HTTP 403")
+        return super().get(path, etag)
+
+
+def _policy(tmp_path, max_cooldowns, sleeps):
+    return run.BlockPolicy(
+        cooldown_minutes=60, max_cooldowns=max_cooldowns, marker=tmp_path / "blocked", sleep=sleeps.append
+    )
+
+
+def test_a_cron_run_stops_at_a_block_keeps_the_item_and_marks_the_cooldown(conn, tmp_path):
     client = FakeClient({"/unique-tournament/264": 403})
     _seed(conn, run.plan_backfill([ACB]))
+    policy = _policy(tmp_path, 0, [])
     with pytest.raises(SofascoreBlockedError):
-        _work(conn, client)
-    status = _q(
-        conn,
-        "SELECT status, attempts FROM sofascore_queue WHERE entity_type = 'tournament'",
-    )[0]
-    assert status == ("pending", 1)
+        run.work(conn, client, SPORTS, max_minutes=1, block_policy=policy)
+    status = _q(conn, "SELECT status, attempts FROM sofascore_queue WHERE entity_type = 'tournament'")
+    assert status == [("pending", 0)]  # not counted as an attempt
+    until = policy.blocked_until()
+    assert until is not None and until > datetime.now(UTC) + timedelta(minutes=59)
+
+
+def test_a_backfill_waits_out_one_block_and_carries_on(conn, tmp_path):
+    client = OneBlock(_acb_routes(), refusals=1)
+    _seed(conn, run.plan_backfill([ACB]))
+    sleeps: list = []
+    stats = run.work(conn, client, SPORTS, max_minutes=1, block_policy=_policy(tmp_path, 3, sleeps))
+    assert sleeps == [3600] and stats.counts["blocked"] == 1
+    assert _q(conn, "SELECT COUNT(*) FROM sofascore_queue WHERE status = 'pending'") == [(0,)]
+    assert _q(conn, "SELECT COUNT(*) FROM sofascore_events") == [(8,)]
+
+
+def test_a_refusal_right_after_a_cooldown_stops_the_backfill(conn, tmp_path):
+    client = OneBlock(_acb_routes(), refusals=2)
+    _seed(conn, run.plan_backfill([ACB]))
+    sleeps: list = []
+    with pytest.raises(SofascoreBlockedError):
+        run.work(conn, client, SPORTS, max_minutes=1, block_policy=_policy(tmp_path, 3, sleeps))
+    assert sleeps == [3600] and len(client.calls) == 2
+
+
+def test_an_expired_marker_does_not_block(tmp_path):
+    marker = tmp_path / "blocked"
+    marker.write_text((datetime.now(UTC) - timedelta(minutes=1)).isoformat(), encoding="utf-8")
+    assert run.BlockPolicy(cooldown_minutes=60, marker=marker).blocked_until() is None
 
 
 def test_errors_are_retried_then_failed_with_the_reason(conn):

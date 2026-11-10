@@ -125,6 +125,17 @@ def reset_stuck(cur: Any, sports: Sequence[str], older_than_minutes: int = 30) -
     return int(cur.rowcount)
 
 
+def release(cur: Any, item: Claimed) -> None:
+    """Back to pending without counting an attempt (the run stopped before fetching it)."""
+    cur.execute(
+        """
+        UPDATE sofascore_queue SET status = 'pending', claimed_at = NULL
+        WHERE entity_type = %s AND entity_key = %s
+        """,
+        (item.entity_type, item.entity_key),
+    )
+
+
 def compress(payload: Any) -> tuple[bytes, str]:
     """gzip'd canonical JSON and the sha256 of the uncompressed JSON."""
     data = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
