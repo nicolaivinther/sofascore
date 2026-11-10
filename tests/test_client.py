@@ -59,28 +59,39 @@ def test_404_is_not_found_not_an_error():
     assert client.get(PATH).not_found
 
 
-def test_429_backs_off_then_succeeds():
-    client, _, sleeps = _client(FakeResponse(429), FakeResponse(200, {"ok": 1}))
+def test_pause_between_requests_is_random_within_the_range():
+    picked = []
+    session = FakeSession([FakeResponse(200, {}), FakeResponse(200, {})])
+    sleeps: list = []
+
+    def uniform(low, high):
+        picked.append((low, high))
+        return 4.2
+
+    client = SofascoreClient(session, sleep=sleeps.append, uniform=uniform)
+    client.get(PATH)
+    client.get(PATH)
+    assert picked == [(3.0, 5.0)] and sleeps == [4.2]  # no pause before the first request
+
+
+def test_5xx_backs_off_then_succeeds():
+    client, _, sleeps = _client(FakeResponse(503), FakeResponse(200, {"ok": 1}))
     assert client.get(PATH).data == {"ok": 1}
-    # One backoff (2 s) plus the polite pause before the second request.
-    assert sleeps == [2.0, 0.25]
+    assert sleeps[0] == 5.0 and 3.0 <= sleeps[1] <= 5.0
 
 
-def test_sustained_403_raises_blocked():
-    client, _, _ = _client(FakeResponse(403), FakeResponse(403), FakeResponse(403))
+def test_a_403_raises_at_once_without_asking_again():
+    client, session, _ = _client(FakeResponse(403), FakeResponse(200, {}))
     with pytest.raises(SofascoreBlockedError):
         client.get(PATH)
+    assert len(session.calls) == 1
 
 
-def test_a_200_resets_the_403_count():
-    client, _, _ = _client(
-        FakeResponse(403),
-        FakeResponse(200, {}),
-        FakeResponse(403),
-        FakeResponse(200, {}),
-    )
-    assert client.get(PATH).status == 200
-    assert client.get(PATH).status == 200
+def test_a_429_is_a_rate_limit_too():
+    client, session, _ = _client(FakeResponse(429), FakeResponse(200, {}))
+    with pytest.raises(SofascoreBlockedError):
+        client.get(PATH)
+    assert len(session.calls) == 1
 
 
 def test_unexpected_status_raises():

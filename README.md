@@ -19,7 +19,8 @@ planners (backfill / daily / fast) ──▶ sofascore_queue ──▶ worker �
 
 * Every API path is a queue row with a status; every payload is kept raw; the tables are rebuilt
   from raw, so a parser fix is a `reparse`, not a re-fetch.
-* One request at a time, 0.25 s apart, with ETags (an unchanged page is a 0-byte 304).
+* One request at a time, 3–5 s apart, with ETags (an unchanged page is a 0-byte 304). A 403/429
+  (Sofascore's rate limit) means an hour without any request.
 * A finished game is fetched once, re-checked after 6 h, 36 h and 7 days, then frozen.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the tables, entity types and runs.

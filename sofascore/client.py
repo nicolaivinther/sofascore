@@ -1,11 +1,12 @@
 """Polite single-threaded client for Sofascore's private JSON API.
 
-- one request at a time with a fixed pause between calls;
+- one request at a time, with a random 3-5 s pause between calls (AGENTS.md rule 4);
 - conditional requests: the caller passes the stored ETag, an unchanged resource comes back as a
   0-byte 304;
-- exponential backoff on 429 / 5xx;
-- a **sustained 403 raises** :class:`SofascoreBlockedError` instead of retrying forever: Sofascore
-  changed its fingerprint defence and the run must stop and alert.
+- exponential backoff on 5xx;
+- **a 403 or 429 raises** :class:`SofascoreBlockedError` at once, without a retry: it is
+  Sofascore's rate limit (seen after ~1,500 requests at 2.7 a second), and asking again while
+  limited only makes it worse. The worker decides between a long cooldown and stopping.
 
 ``api.sofascore.com`` 403s every client profile; ``www.sofascore.com`` serves the same ``/api/v1``
 paths to a Firefox/Windows cloudscraper profile. Both are constructor arguments, so a block can be
@@ -14,6 +15,7 @@ worked around without a code change.
 
 from __future__ import annotations
 
+import random
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -27,12 +29,13 @@ DEFAULT_BROWSER: dict[str, Any] = {
     "platform": "windows",
     "mobile": False,
 }
-DEFAULT_DELAY_SECONDS = 0.25
-RETRY_STATUSES = frozenset({429, 500, 502, 503, 504})
+DEFAULT_PAUSE_SECONDS = (3.0, 5.0)
+RETRY_STATUSES = frozenset({500, 502, 503, 504})
+LIMIT_STATUSES = frozenset({403, 429})
 
 
 class SofascoreBlockedError(RuntimeError):
-    """Raised after ``max_consecutive_403`` forbidden responses in a row."""
+    """Sofascore refused a request (403/429): rate-limited or blocked."""
 
 
 class SofascoreHTTPError(RuntimeError):
@@ -71,21 +74,20 @@ class SofascoreClient:  # pylint: disable=too-many-instance-attributes
         session: Any = None,
         *,
         base_url: str = DEFAULT_BASE_URL,
-        delay_seconds: float = DEFAULT_DELAY_SECONDS,
+        pause_seconds: tuple[float, float] = DEFAULT_PAUSE_SECONDS,
         max_retries: int = 5,
-        max_consecutive_403: int = 3,
-        backoff_base_seconds: float = 2.0,
+        backoff_base_seconds: float = 5.0,
         sleep: Callable[[float], None] = time.sleep,
+        uniform: Callable[[float, float], float] = random.uniform,
     ) -> None:
         self.session = session if session is not None else create_session()
         self.base_url = base_url.rstrip("/")
-        self.delay_seconds = delay_seconds
+        self.pause_seconds = pause_seconds
         self.max_retries = max_retries
-        self.max_consecutive_403 = max_consecutive_403
         self.backoff_base_seconds = backoff_base_seconds
         self.sleep = sleep
+        self.uniform = uniform
         self.request_count = 0
-        self._consecutive_403 = 0
 
     def get(self, path: str, etag: str | None = None) -> FetchResult:
         """Fetch one API path (``/unique-tournament/264/seasons``), conditionally on ``etag``."""
@@ -93,16 +95,8 @@ class SofascoreClient:  # pylint: disable=too-many-instance-attributes
         for attempt in range(self.max_retries + 1):
             response = self._request(path, headers)
             status = response.status_code
-            if status == 403:
-                self._consecutive_403 += 1
-                if self._consecutive_403 >= self.max_consecutive_403:
-                    raise SofascoreBlockedError(
-                        f"{self._consecutive_403} consecutive 403s (last: {path}): Sofascore is "
-                        "blocking this client profile; stopping instead of retrying"
-                    )
-                self.sleep(self._backoff(attempt))
-                continue
-            self._consecutive_403 = 0
+            if status in LIMIT_STATUSES:
+                raise SofascoreBlockedError(f"HTTP {status} on {path}: Sofascore is limiting this client")
             if status in RETRY_STATUSES:
                 self.sleep(self._backoff(attempt))
                 continue
@@ -111,7 +105,7 @@ class SofascoreClient:  # pylint: disable=too-many-instance-attributes
 
     def _request(self, path: str, headers: dict[str, str]) -> Any:
         if self.request_count:
-            self.sleep(self.delay_seconds)
+            self.sleep(self.uniform(*self.pause_seconds))
         self.request_count += 1
         return self.session.get(self.base_url + path, headers=headers, timeout=30)
 
