@@ -71,7 +71,7 @@ def test_pause_between_requests_is_random_within_the_range():
     client = SofascoreClient(session, sleep=sleeps.append, uniform=uniform)
     client.get(PATH)
     client.get(PATH)
-    assert picked == [(3.0, 5.0)] and sleeps == [4.2]  # no pause before the first request
+    assert picked == [(2.0, 4.0)] and sleeps == [4.2]  # no pause before the first request
 
 
 def test_5xx_backs_off_then_succeeds():

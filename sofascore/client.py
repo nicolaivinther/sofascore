@@ -1,6 +1,6 @@
 """Polite single-threaded client for Sofascore's private JSON API.
 
-- one request at a time, with a random 3-5 s pause between calls (AGENTS.md rule 4);
+- one request at a time, with a random 2-4 s pause between calls (AGENTS.md rule 4);
 - conditional requests: the caller passes the stored ETag, an unchanged resource comes back as a
   0-byte 304;
 - exponential backoff on 5xx;
@@ -29,7 +29,7 @@ DEFAULT_BROWSER: dict[str, Any] = {
     "platform": "windows",
     "mobile": False,
 }
-DEFAULT_PAUSE_SECONDS = (3.0, 5.0)
+DEFAULT_PAUSE_SECONDS = (2.0, 4.0)
 RETRY_STATUSES = frozenset({500, 502, 503, 504})
 LIMIT_STATUSES = frozenset({403, 429})
 
