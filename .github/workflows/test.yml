@@ -1,10 +1,6 @@
 name: Test sofascore
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
+on: [push]
 
 jobs:
   test:
