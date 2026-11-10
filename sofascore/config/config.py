@@ -19,10 +19,10 @@ class Config:  # pylint: disable=invalid-name,too-many-instance-attributes
     )
     # Random pause between two Sofascore requests, seconds; one request at a time (AGENTS.md rule 4).
     SOFASCORE_PAUSE_MIN_S: float = field(
-        default_factory=lambda: float(os.environ.get("SOFASCORE_PAUSE_MIN_S", "3"))
+        default_factory=lambda: float(os.environ.get("SOFASCORE_PAUSE_MIN_S", "2"))
     )
     SOFASCORE_PAUSE_MAX_S: float = field(
-        default_factory=lambda: float(os.environ.get("SOFASCORE_PAUSE_MAX_S", "5"))
+        default_factory=lambda: float(os.environ.get("SOFASCORE_PAUSE_MAX_S", "4"))
     )
     # After a 403/429 nothing asks Sofascore for this many minutes (any run, cron or by hand).
     SOFASCORE_COOLDOWN_MIN: float = field(
