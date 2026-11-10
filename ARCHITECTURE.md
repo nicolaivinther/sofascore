@@ -5,9 +5,10 @@
 - `www.sofascore.com/api/v1/...` answers a real browser and the `cloudscraper` Firefox/Windows
   profile (`client.DEFAULT_BROWSER`). `api.sofascore.com` 403s every profile; plain `requests` is
   fingerprint-blocked. No key, login or cookies.
-- **Rate limit:** at 2.7 requests a second Sofascore answered 403 after about 1,500 requests
-  (2026-11-10). So the client pauses a random 2–4 s between requests and never retries a 403/429:
-  it raises `SofascoreBlockedError`, the item goes back to pending (no attempt counted), and
+- **Rate limit:** Sofascore answered 403 after about 1,500 requests at 2.7 a second, and after about
+  2,150 at one per ~3.1 s; the second block still held after an hour (2026-11-10). At one per ~4.1 s
+  it took 3,000 without one. So the client pauses a random 4–6 s between requests and never retries
+  a 403/429: it raises `SofascoreBlockedError`, the item goes back to pending (no attempt counted), and
   `logs/sofascore_blocked_until` stops every run from asking for 60 minutes. A backfill waits the
   hour out and carries on (at most 3 times per run); a refusal on the first request after a
   cooldown, or in a cron run, stops the run (exit code 2, Sentry).
@@ -98,10 +99,10 @@ and `--max-minutes`/`--max-items`. One run at a time (`/tmp/sofascore_run.lock`)
 
 ## Cost
 
-About 1,150 requests an hour (a 2–4 s pause plus the response). Full history of the 58 leagues:
+About 700 requests an hour (a 4–6 s pause plus the response). Full history of the 58 leagues:
 about 3,000 requests for tournaments, seasons, game pages and teams, plus about 2 per finished
 game for stats and lineups (up to ~50,000), plus 4 per season for standings and rounds: roughly
-2 days, once, resumable. A daily pass is a few hundred mostly-304 requests (15–30 minutes); a
+3 days, once, resumable. A daily pass is a few hundred mostly-304 requests (25–50 minutes); a
 fast run a few to ~30.
 
 ## Status queries

@@ -48,8 +48,8 @@ FAST_MAX_AGE_HOURS = 48
 GHOST_HOURS = 36
 # One collector at a time (cron or by hand), so Sofascore never sees two clients at once.
 LOCK_PATH = "/tmp/sofascore_run.lock"  # nosec B108 — a lock file, no data
-# Worker time budget per command, minutes. At 2-4 s a request a daily pass (a few hundred mostly
-# 304s) takes 15-30 minutes; a full backfill runs for days and can be resumed at any point.
+# Worker time budget per command, minutes. At 4-6 s a request a daily pass (a few hundred mostly
+# 304s) takes 25-50 minutes; a full backfill runs for days and can be resumed at any point.
 BUDGET_MINUTES = {"fast": 25.0, "daily": 90.0, "backfill": 4320.0, "work": 4320.0}
 # A backfill waits out a block (SOFASCORE_COOLDOWN_MIN) at most this often per run; the cron runs
 # stop at the first one.
