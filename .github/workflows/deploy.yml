@@ -16,4 +16,5 @@ jobs:
         run: |
           cd /Users/nicolaitanghoj/dev/sofascore &&
           git pull --ff-only origin main &&
+          /opt/homebrew/bin/poetry env use python3.13 &&
           /opt/homebrew/bin/poetry sync --no-interaction
