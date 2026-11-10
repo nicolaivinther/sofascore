@@ -1,0 +1,38 @@
+name: Test sofascore
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry and dependencies
+        run: |
+          pipx install poetry
+          poetry install --no-interaction --with=dev
+
+      - name: Lint (black, isort, ruff, pylint)
+        env:
+          SKIP: mypy
+        run: poetry run pre-commit run --all-files --show-diff-on-failure
+
+      - name: mypy
+        run: poetry run mypy sofascore tests
+
+      - name: Tests
+        # The tests start a throwaway PostgreSQL cluster with initdb (tests/conftest.py)
+        env:
+          SOFASCORE_TEST_PG_BIN: /usr/lib/postgresql/16/bin
+        run: poetry run pytest

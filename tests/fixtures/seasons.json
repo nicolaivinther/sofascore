@@ -1,0 +1,118 @@
+{
+ "seasons": [
+  {
+   "name": "Liga ACB 26/27",
+   "year": "26/27",
+   "editor": false,
+   "id": 100873
+  },
+  {
+   "name": "Liga ACB 25/26",
+   "year": "25/26",
+   "editor": false,
+   "id": 80922
+  },
+  {
+   "name": "Liga ACB 24/25",
+   "year": "24/25",
+   "editor": false,
+   "id": 64689
+  },
+  {
+   "name": "Liga ACB 23/24",
+   "year": "23/24",
+   "editor": false,
+   "id": 53749
+  },
+  {
+   "name": "Liga ACB 22/23",
+   "year": "22/23",
+   "editor": false,
+   "id": 45109
+  },
+  {
+   "name": "Liga ACB 21/22",
+   "year": "21/22",
+   "editor": false,
+   "id": 38037
+  },
+  {
+   "name": "Liga ACB 20/21",
+   "year": "20/21",
+   "editor": false,
+   "id": 32528
+  },
+  {
+   "name": "Liga ACB 19/20",
+   "year": "19/20",
+   "editor": false,
+   "id": 24794
+  },
+  {
+   "name": "Liga ACB 18/19",
+   "year": "18/19",
+   "editor": false,
+   "id": 18344
+  },
+  {
+   "name": "Liga ACB 17/18",
+   "year": "17/18",
+   "editor": false,
+   "id": 14511
+  },
+  {
+   "name": "Spagnola ACB 16/17",
+   "year": "16/17",
+   "editor": false,
+   "id": 12074
+  },
+  {
+   "name": "Spagnola ACB 15/16",
+   "year": "15/16",
+   "editor": false,
+   "id": 10864
+  },
+  {
+   "name": "Liga ACB 14/15",
+   "year": "14/15",
+   "editor": false,
+   "id": 8836
+  },
+  {
+   "name": "Spagnola ACB 13/14",
+   "year": "13/14",
+   "editor": false,
+   "id": 6895
+  },
+  {
+   "name": "Spagnola ACB 12/13",
+   "year": "12/13",
+   "editor": false,
+   "id": 5219
+  },
+  {
+   "name": "Spagnola ACB 11/12",
+   "year": "11/12",
+   "editor": false,
+   "id": 3701
+  },
+  {
+   "name": "Spagnola ACB 10/11",
+   "year": "10/11",
+   "editor": false,
+   "id": 2988
+  },
+  {
+   "name": "Spagnola ACB 09/10",
+   "year": "09/10",
+   "editor": false,
+   "id": 2364
+  },
+  {
+   "name": "Spagnola ACB 08/09",
+   "year": "08/09",
+   "editor": false,
+   "id": 1783
+  }
+ ]
+}

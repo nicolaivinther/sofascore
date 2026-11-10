@@ -1,0 +1,556 @@
+{
+ "events": [
+  {
+   "tournament": {
+    "name": "Liga ACB",
+    "slug": "liga-acb",
+    "category": {
+     "name": "Spain",
+     "slug": "spain",
+     "sport": {
+      "name": "Basketball",
+      "slug": "basketball",
+      "id": 2
+     },
+     "priority": 0,
+     "country": {
+      "alpha2": "ES",
+      "alpha3": "ESP",
+      "name": "Spain",
+      "slug": "spain"
+     },
+     "id": 109,
+     "flag": "spain",
+     "alpha2": "ES"
+    },
+    "uniqueTournament": {
+     "name": "Liga ACB",
+     "slug": "liga-acb",
+     "primaryColorHex": "#e9510e",
+     "secondaryColorHex": "#b23c0a",
+     "category": {
+      "name": "Spain",
+      "slug": "spain",
+      "sport": {
+       "name": "Basketball",
+       "slug": "basketball",
+       "id": 2
+      },
+      "priority": 0,
+      "country": {
+       "alpha2": "ES",
+       "alpha3": "ESP",
+       "name": "Spain",
+       "slug": "spain"
+      },
+      "id": 109,
+      "flag": "spain",
+      "alpha2": "ES"
+     },
+     "userCount": 9679,
+     "hasPerformanceGraphFeature": false,
+     "liveActivityEnabled": false,
+     "country": {},
+     "id": 264,
+     "hasEventPlayerStatistics": false,
+     "hasBoxScore": true,
+     "displayInverseHomeAwayTeams": false,
+     "hasRating": true
+    },
+    "priority": 97,
+    "isGroup": false,
+    "isLive": false,
+    "id": 271
+   },
+   "season": {
+    "name": "Liga ACB 24/25",
+    "year": "24/25",
+    "editor": false,
+    "id": 64689
+   },
+   "roundInfo": {
+    "round": 33
+   },
+   "customId": "TvbsFtXc",
+   "status": {
+    "code": 100,
+    "description": "Ended",
+    "type": "finished"
+   },
+   "winnerCode": 1,
+   "homeTeam": {
+    "name": "Barça Basket",
+    "slug": "barca-basket",
+    "shortName": "Barça",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 65966,
+    "nameCode": "FCB",
+    "disabled": false,
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 3543,
+    "subTeams": []
+   },
+   "awayTeam": {
+    "name": "Bàsquet Girona",
+    "slug": "basquet-girona",
+    "shortName": "Girona",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 1994,
+    "nameCode": "BAS",
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 368430,
+    "subTeams": []
+   },
+   "homeScore": {
+    "current": 97,
+    "display": 97,
+    "period1": 32,
+    "period2": 21,
+    "period3": 26,
+    "period4": 18,
+    "normaltime": 97
+   },
+   "awayScore": {
+    "current": 74,
+    "display": 74,
+    "period1": 19,
+    "period2": 16,
+    "period3": 21,
+    "period4": 18,
+    "normaltime": 74
+   },
+   "time": {
+    "played": 2384,
+    "periodLength": 600,
+    "overtimeLength": 300,
+    "totalPeriodCount": 4,
+    "currentPeriodStartTimestamp": 1748191879
+   },
+   "changes": {
+    "changes": [
+     "time.currentPeriodStart",
+     "status.code",
+     "status.description",
+     "status.type",
+     "homeScore.normaltime",
+     "awayScore.normaltime"
+    ],
+    "changeTimestamp": 1748191887
+   },
+   "hasGlobalHighlights": true,
+   "hasEventPlayerStatistics": true,
+   "crowdsourcingDataDisplayEnabled": false,
+   "id": 12622076,
+   "periods": {
+    "current": "Score",
+    "period1": "1st quarter",
+    "period2": "2nd quarter",
+    "period3": "3rd quarter",
+    "period4": "4th quarter",
+    "overtime": "Overtime"
+   },
+   "slug": "basquet-girona-barca-basket",
+   "startTimestamp": 1748185200,
+   "finalResultOnly": false,
+   "feedLocked": false,
+   "isEditor": false
+  },
+  {
+   "tournament": {
+    "name": "Liga ACB, Playoffs",
+    "slug": "liga-acb-playoffs",
+    "category": {
+     "name": "Spain",
+     "slug": "spain",
+     "sport": {
+      "name": "Basketball",
+      "slug": "basketball",
+      "id": 2
+     },
+     "priority": 0,
+     "country": {
+      "alpha2": "ES",
+      "alpha3": "ESP",
+      "name": "Spain",
+      "slug": "spain"
+     },
+     "id": 109,
+     "flag": "spain",
+     "alpha2": "ES"
+    },
+    "uniqueTournament": {
+     "name": "Liga ACB",
+     "slug": "liga-acb",
+     "primaryColorHex": "#e9510e",
+     "secondaryColorHex": "#b23c0a",
+     "category": {
+      "name": "Spain",
+      "slug": "spain",
+      "sport": {
+       "name": "Basketball",
+       "slug": "basketball",
+       "id": 2
+      },
+      "priority": 0,
+      "country": {
+       "alpha2": "ES",
+       "alpha3": "ESP",
+       "name": "Spain",
+       "slug": "spain"
+      },
+      "id": 109,
+      "flag": "spain",
+      "alpha2": "ES"
+     },
+     "userCount": 9679,
+     "hasPerformanceGraphFeature": false,
+     "liveActivityEnabled": false,
+     "country": {},
+     "id": 264,
+     "hasEventPlayerStatistics": false,
+     "hasBoxScore": true,
+     "displayInverseHomeAwayTeams": false,
+     "hasRating": true
+    },
+    "priority": 98,
+    "isGroup": false,
+    "isLive": false,
+    "id": 6108
+   },
+   "season": {
+    "name": "Liga ACB 24/25",
+    "year": "24/25",
+    "editor": false,
+    "id": 64689
+   },
+   "roundInfo": {
+    "round": 27,
+    "name": "Quarterfinals",
+    "slug": "quarterfinals",
+    "cupRoundType": 4
+   },
+   "customId": "Tvbsgwb",
+   "status": {
+    "code": 110,
+    "description": "AET",
+    "type": "finished"
+   },
+   "winnerCode": 2,
+   "homeTeam": {
+    "name": "Unicaja",
+    "slug": "unicaja-malaga",
+    "shortName": "Unicaja",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 6615,
+    "nameCode": "MAL",
+    "disabled": false,
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 3556,
+    "subTeams": []
+   },
+   "awayTeam": {
+    "name": "Barça Basket",
+    "slug": "barca-basket",
+    "shortName": "Barça",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 65966,
+    "nameCode": "FCB",
+    "disabled": false,
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 3543,
+    "subTeams": []
+   },
+   "homeScore": {
+    "current": 97,
+    "display": 97,
+    "period1": 21,
+    "period2": 25,
+    "period3": 14,
+    "period4": 25,
+    "normaltime": 85,
+    "overtime": 12,
+    "series": 0
+   },
+   "awayScore": {
+    "current": 101,
+    "display": 101,
+    "period1": 16,
+    "period2": 21,
+    "period3": 25,
+    "period4": 23,
+    "normaltime": 85,
+    "overtime": 16,
+    "series": 1
+   },
+   "time": {
+    "played": 2695,
+    "periodLength": 600,
+    "overtimeLength": 300,
+    "totalPeriodCount": 4,
+    "currentPeriodStartTimestamp": 1748986472
+   },
+   "changes": {
+    "changes": [
+     "status.code",
+     "status.description",
+     "status.type",
+     "time.currentPeriodStart"
+    ],
+    "changeTimestamp": 1748986476
+   },
+   "hasGlobalHighlights": true,
+   "hasEventPlayerStatistics": true,
+   "crowdsourcingDataDisplayEnabled": false,
+   "id": 13957020,
+   "periods": {
+    "current": "Score",
+    "period1": "1st quarter",
+    "period2": "2nd quarter",
+    "period3": "3rd quarter",
+    "period4": "4th quarter",
+    "overtime": "Overtime"
+   },
+   "slug": "unicaja-malaga-barca-basket",
+   "startTimestamp": 1748978100,
+   "finalResultOnly": false,
+   "feedLocked": false,
+   "cupMatchesInRound": 3,
+   "isEditor": false
+  },
+  {
+   "tournament": {
+    "name": "Liga ACB, Playoffs",
+    "slug": "liga-acb-playoffs",
+    "category": {
+     "name": "Spain",
+     "slug": "spain",
+     "sport": {
+      "name": "Basketball",
+      "slug": "basketball",
+      "id": 2
+     },
+     "priority": 0,
+     "country": {
+      "alpha2": "ES",
+      "alpha3": "ESP",
+      "name": "Spain",
+      "slug": "spain"
+     },
+     "id": 109,
+     "flag": "spain",
+     "alpha2": "ES"
+    },
+    "uniqueTournament": {
+     "name": "Liga ACB",
+     "slug": "liga-acb",
+     "primaryColorHex": "#e9510e",
+     "secondaryColorHex": "#b23c0a",
+     "category": {
+      "name": "Spain",
+      "slug": "spain",
+      "sport": {
+       "name": "Basketball",
+       "slug": "basketball",
+       "id": 2
+      },
+      "priority": 0,
+      "country": {
+       "alpha2": "ES",
+       "alpha3": "ESP",
+       "name": "Spain",
+       "slug": "spain"
+      },
+      "id": 109,
+      "flag": "spain",
+      "alpha2": "ES"
+     },
+     "userCount": 9679,
+     "hasPerformanceGraphFeature": false,
+     "liveActivityEnabled": false,
+     "country": {},
+     "id": 264,
+     "hasEventPlayerStatistics": false,
+     "hasBoxScore": true,
+     "displayInverseHomeAwayTeams": false,
+     "hasRating": true
+    },
+    "priority": 98,
+    "isGroup": false,
+    "isLive": false,
+    "id": 6108
+   },
+   "season": {
+    "name": "Liga ACB 24/25",
+    "year": "24/25",
+    "editor": false,
+    "id": 64689
+   },
+   "roundInfo": {
+    "round": 29,
+    "name": "Final",
+    "slug": "final",
+    "cupRoundType": 1
+   },
+   "customId": "PvbsVvb",
+   "status": {
+    "code": 100,
+    "description": "Ended",
+    "type": "finished"
+   },
+   "winnerCode": 2,
+   "homeTeam": {
+    "name": "Valencia Basket",
+    "slug": "valencia-basket",
+    "shortName": "Valencia",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 16388,
+    "nameCode": "VAL",
+    "disabled": false,
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 3545,
+    "subTeams": []
+   },
+   "awayTeam": {
+    "name": "Real Madrid",
+    "slug": "real-madrid",
+    "shortName": "Real Madrid",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 103574,
+    "nameCode": "RMA",
+    "disabled": false,
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 3540,
+    "subTeams": []
+   },
+   "homeScore": {
+    "current": 70,
+    "display": 70,
+    "period1": 19,
+    "period2": 21,
+    "period3": 9,
+    "period4": 21,
+    "normaltime": 70,
+    "series": 0
+   },
+   "awayScore": {
+    "current": 81,
+    "display": 81,
+    "period1": 23,
+    "period2": 16,
+    "period3": 21,
+    "period4": 21,
+    "normaltime": 81,
+    "series": 3
+   },
+   "time": {
+    "played": 2400,
+    "periodLength": 600,
+    "overtimeLength": 300,
+    "totalPeriodCount": 4,
+    "currentPeriodStartTimestamp": 1750885986
+   },
+   "changes": {
+    "changes": [
+     "status.code",
+     "status.description",
+     "status.type",
+     "homeScore.normaltime",
+     "awayScore.normaltime"
+    ],
+    "changeTimestamp": 1750886045
+   },
+   "hasGlobalHighlights": true,
+   "hasEventPlayerStatistics": true,
+   "crowdsourcingDataDisplayEnabled": false,
+   "id": 14022328,
+   "periods": {
+    "current": "Score",
+    "period1": "1st quarter",
+    "period2": "2nd quarter",
+    "period3": "3rd quarter",
+    "period4": "4th quarter",
+    "overtime": "Overtime"
+   },
+   "slug": "valencia-basket-real-madrid",
+   "previousLegEventId": 14022326,
+   "startTimestamp": 1750878900,
+   "finalResultOnly": false,
+   "feedLocked": false,
+   "cupMatchesInRound": 5,
+   "isEditor": false
+  }
+ ],
+ "hasNextPage": true
+}

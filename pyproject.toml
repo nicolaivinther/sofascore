@@ -1,0 +1,63 @@
+[tool.poetry]
+name = "sofascore"
+version = "0.1.0"
+description = "Sofascore basketball and hockey data: tournaments, seasons, teams, players, games, stats and standings"
+authors = ["Nicolai Tanghøj"]
+readme = "README.md"
+packages = [{include = "sofascore"}]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+psycopg2-binary = "^2.9.9"
+cloudscraper = "^1.2.71"
+sentry-sdk = "^2.19.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+black = "^24.10.0"
+isort = "^5.13.2"
+ruff = "^0.8.0"
+mypy = "^1.13.0"
+pylint = "^3.3.0"
+pre-commit = "^4.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 110
+target-version = ["py313"]
+
+[tool.isort]
+profile = "black"
+line_length = 110
+combine_as_imports = true
+
+[tool.ruff]
+line-length = 110
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+
+[tool.pylint.format]
+max-line-length = 110
+
+[tool.pylint."messages control"]
+disable = ["missing-module-docstring", "too-few-public-methods"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q --tb=short"
