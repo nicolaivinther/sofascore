@@ -12,7 +12,7 @@ only imports this file.
    Migrations are applied by hand, with approval.
 3. **Never commit to `main` and never merge PRs.** One branch (and worktree) per `BAS-<n>` ticket;
    the user merges.
-4. **Collection pacing is fixed:** one request at a time with a random 2–4 s pause between calls
+4. **Collection pacing is fixed:** one request at a time with a random 4–6 s pause between calls
    (`SOFASCORE_PAUSE_MIN_S`/`MAX_S`); we must not strain Sofascore's API. A 403 or 429 is never
    retried at once: nothing asks Sofascore for 60 minutes (`SOFASCORE_COOLDOWN_MIN`, the
    `logs/sofascore_blocked_until` marker every run checks). A backfill waits the cooldown out and

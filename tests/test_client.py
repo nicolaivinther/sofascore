@@ -4,7 +4,7 @@
 
 import pytest
 
-from sofascore.client import SofascoreBlockedError, SofascoreClient, SofascoreHTTPError
+from sofascore.client import DEFAULT_PAUSE_SECONDS, SofascoreBlockedError, SofascoreClient, SofascoreHTTPError
 
 PATH = "/unique-tournament/264/seasons"
 
@@ -71,13 +71,14 @@ def test_pause_between_requests_is_random_within_the_range():
     client = SofascoreClient(session, sleep=sleeps.append, uniform=uniform)
     client.get(PATH)
     client.get(PATH)
-    assert picked == [(2.0, 4.0)] and sleeps == [4.2]  # no pause before the first request
+    assert picked == [DEFAULT_PAUSE_SECONDS] and sleeps == [4.2]  # no pause before the first request
 
 
 def test_5xx_backs_off_then_succeeds():
     client, _, sleeps = _client(FakeResponse(503), FakeResponse(200, {"ok": 1}))
     assert client.get(PATH).data == {"ok": 1}
-    assert sleeps[0] == 5.0 and 3.0 <= sleeps[1] <= 5.0
+    low, high = DEFAULT_PAUSE_SECONDS
+    assert sleeps[0] == 5.0 and low <= sleeps[1] <= high
 
 
 def test_a_403_raises_at_once_without_asking_again():
