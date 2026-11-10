@@ -1,0 +1,514 @@
+{
+ "events": [
+  {
+   "tournament": {
+    "name": "Liga ACB",
+    "slug": "liga-acb",
+    "category": {
+     "name": "Spain",
+     "slug": "spain",
+     "sport": {
+      "name": "Basketball",
+      "slug": "basketball",
+      "id": 2
+     },
+     "priority": 0,
+     "country": {
+      "alpha2": "ES",
+      "alpha3": "ESP",
+      "name": "Spain",
+      "slug": "spain"
+     },
+     "id": 109,
+     "flag": "spain",
+     "alpha2": "ES"
+    },
+    "uniqueTournament": {
+     "name": "Liga ACB",
+     "slug": "liga-acb",
+     "primaryColorHex": "#e9510e",
+     "secondaryColorHex": "#b23c0a",
+     "category": {
+      "name": "Spain",
+      "slug": "spain",
+      "sport": {
+       "name": "Basketball",
+       "slug": "basketball",
+       "id": 2
+      },
+      "priority": 0,
+      "country": {
+       "alpha2": "ES",
+       "alpha3": "ESP",
+       "name": "Spain",
+       "slug": "spain"
+      },
+      "id": 109,
+      "flag": "spain",
+      "alpha2": "ES"
+     },
+     "userCount": 9679,
+     "hasPerformanceGraphFeature": false,
+     "liveActivityEnabled": false,
+     "country": {},
+     "id": 264,
+     "hasEventPlayerStatistics": false,
+     "hasBoxScore": true,
+     "displayInverseHomeAwayTeams": false,
+     "hasRating": true
+    },
+    "priority": 97,
+    "isGroup": false,
+    "isLive": false,
+    "id": 271
+   },
+   "season": {
+    "name": "Liga ACB 26/27",
+    "year": "26/27",
+    "editor": false,
+    "id": 100873
+   },
+   "roundInfo": {
+    "round": 1
+   },
+   "customId": "kwbspmc",
+   "status": {
+    "code": 100,
+    "description": "Ended",
+    "type": "finished"
+   },
+   "winnerCode": 1,
+   "homeTeam": {
+    "name": "Surne Bilbao Basket",
+    "slug": "retabet-bilbao-basket",
+    "shortName": "Bilbao Basket",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 3176,
+    "nameCode": "BIL",
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 5615,
+    "subTeams": []
+   },
+   "awayTeam": {
+    "name": "Kids&Us Manresa",
+    "slug": "baxi-manresa",
+    "shortName": "Manresa",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 2427,
+    "nameCode": "MAN",
+    "disabled": false,
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 3560,
+    "subTeams": []
+   },
+   "homeScore": {
+    "current": 107,
+    "display": 107,
+    "period1": 19,
+    "period2": 25,
+    "period3": 32,
+    "period4": 31,
+    "normaltime": 107
+   },
+   "awayScore": {
+    "current": 92,
+    "display": 92,
+    "period1": 18,
+    "period2": 20,
+    "period3": 27,
+    "period4": 27,
+    "normaltime": 92
+   },
+   "time": {
+    "played": 2389,
+    "periodLength": 600,
+    "overtimeLength": 300,
+    "totalPeriodCount": 4,
+    "currentPeriodStartTimestamp": 1790445445
+   },
+   "changes": {
+    "changes": [
+     "time.currentPeriodStart",
+     "status.code",
+     "status.description",
+     "status.type",
+     "homeScore.normaltime",
+     "awayScore.normaltime"
+    ],
+    "changeTimestamp": 1790445448
+   },
+   "hasGlobalHighlights": true,
+   "hasEventPlayerStatistics": true,
+   "crowdsourcingDataDisplayEnabled": false,
+   "id": 16830089,
+   "periods": {
+    "current": "Score",
+    "period1": "1st quarter",
+    "period2": "2nd quarter",
+    "period3": "3rd quarter",
+    "period4": "4th quarter",
+    "overtime": "Overtime"
+   },
+   "slug": "surne-bilbao-basket-kids-and-us-manresa",
+   "startTimestamp": 1790438400,
+   "finalResultOnly": false,
+   "feedLocked": false,
+   "isEditor": false
+  },
+  {
+   "tournament": {
+    "name": "Liga ACB",
+    "slug": "liga-acb",
+    "category": {
+     "name": "Spain",
+     "slug": "spain",
+     "sport": {
+      "name": "Basketball",
+      "slug": "basketball",
+      "id": 2
+     },
+     "priority": 0,
+     "country": {
+      "alpha2": "ES",
+      "alpha3": "ESP",
+      "name": "Spain",
+      "slug": "spain"
+     },
+     "id": 109,
+     "flag": "spain",
+     "alpha2": "ES"
+    },
+    "uniqueTournament": {
+     "name": "Liga ACB",
+     "slug": "liga-acb",
+     "primaryColorHex": "#e9510e",
+     "secondaryColorHex": "#b23c0a",
+     "category": {
+      "name": "Spain",
+      "slug": "spain",
+      "sport": {
+       "name": "Basketball",
+       "slug": "basketball",
+       "id": 2
+      },
+      "priority": 0,
+      "country": {
+       "alpha2": "ES",
+       "alpha3": "ESP",
+       "name": "Spain",
+       "slug": "spain"
+      },
+      "id": 109,
+      "flag": "spain",
+      "alpha2": "ES"
+     },
+     "userCount": 9679,
+     "hasPerformanceGraphFeature": false,
+     "liveActivityEnabled": false,
+     "country": {},
+     "id": 264,
+     "hasEventPlayerStatistics": false,
+     "hasBoxScore": true,
+     "displayInverseHomeAwayTeams": false,
+     "hasRating": true
+    },
+    "priority": 97,
+    "isGroup": false,
+    "isLive": false,
+    "id": 271
+   },
+   "season": {
+    "name": "Liga ACB 26/27",
+    "year": "26/27",
+    "editor": false,
+    "id": 100873
+   },
+   "roundInfo": {
+    "round": 1
+   },
+   "customId": "wTosJPZ",
+   "status": {
+    "code": 100,
+    "description": "Ended",
+    "type": "finished"
+   },
+   "winnerCode": 2,
+   "homeTeam": {
+    "name": "MoraBanc Andorra",
+    "slug": "morabanc-andorra",
+    "shortName": "MB Andorra",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 1404,
+    "nameCode": "AND",
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 124534,
+    "subTeams": []
+   },
+   "awayTeam": {
+    "name": "Monbus Obradoiro",
+    "slug": "monbus-obradoiro",
+    "shortName": "Obradoiro",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 1333,
+    "nameCode": "OBR",
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 37171,
+    "subTeams": []
+   },
+   "homeScore": {
+    "current": 85,
+    "display": 85,
+    "period1": 27,
+    "period2": 19,
+    "period3": 24,
+    "period4": 15,
+    "normaltime": 85
+   },
+   "awayScore": {
+    "current": 90,
+    "display": 90,
+    "period1": 14,
+    "period2": 29,
+    "period3": 22,
+    "period4": 25,
+    "normaltime": 90
+   },
+   "time": {
+    "played": 2394,
+    "periodLength": 600,
+    "overtimeLength": 300,
+    "totalPeriodCount": 4,
+    "currentPeriodStartTimestamp": 1790451177
+   },
+   "changes": {
+    "changes": [
+     "time.currentPeriodStart",
+     "status.code",
+     "status.description",
+     "status.type",
+     "homeScore.normaltime",
+     "awayScore.normaltime"
+    ],
+    "changeTimestamp": 1790451181
+   },
+   "hasGlobalHighlights": true,
+   "hasEventPlayerStatistics": true,
+   "crowdsourcingDataDisplayEnabled": false,
+   "id": 16830090,
+   "periods": {
+    "current": "Score",
+    "period1": "1st quarter",
+    "period2": "2nd quarter",
+    "period3": "3rd quarter",
+    "period4": "4th quarter",
+    "overtime": "Overtime"
+   },
+   "slug": "morabanc-andorra-monbus-obradoiro",
+   "startTimestamp": 1790443800,
+   "finalResultOnly": false,
+   "feedLocked": false,
+   "isEditor": false
+  },
+  {
+   "tournament": {
+    "name": "Liga ACB",
+    "slug": "liga-acb",
+    "category": {
+     "name": "Spain",
+     "slug": "spain",
+     "sport": {
+      "name": "Basketball",
+      "slug": "basketball",
+      "id": 2
+     },
+     "priority": 0,
+     "country": {
+      "alpha2": "ES",
+      "alpha3": "ESP",
+      "name": "Spain",
+      "slug": "spain"
+     },
+     "id": 109,
+     "flag": "spain",
+     "alpha2": "ES"
+    },
+    "uniqueTournament": {
+     "name": "Liga ACB",
+     "slug": "liga-acb",
+     "primaryColorHex": "#e9510e",
+     "secondaryColorHex": "#b23c0a",
+     "category": {
+      "name": "Spain",
+      "slug": "spain",
+      "sport": {
+       "name": "Basketball",
+       "slug": "basketball",
+       "id": 2
+      },
+      "priority": 0,
+      "country": {
+       "alpha2": "ES",
+       "alpha3": "ESP",
+       "name": "Spain",
+       "slug": "spain"
+      },
+      "id": 109,
+      "flag": "spain",
+      "alpha2": "ES"
+     },
+     "userCount": 9679,
+     "hasPerformanceGraphFeature": false,
+     "liveActivityEnabled": false,
+     "country": {},
+     "id": 264,
+     "hasEventPlayerStatistics": false,
+     "hasBoxScore": true,
+     "displayInverseHomeAwayTeams": false,
+     "hasRating": true
+    },
+    "priority": 97,
+    "isGroup": false,
+    "isLive": false,
+    "id": 271
+   },
+   "season": {
+    "name": "Liga ACB 26/27",
+    "year": "26/27",
+    "editor": false,
+    "id": 100873
+   },
+   "roundInfo": {
+    "round": 2
+   },
+   "customId": "UvbsJPZ",
+   "status": {
+    "code": 60,
+    "description": "Postponed",
+    "type": "postponed"
+   },
+   "homeTeam": {
+    "name": "Joventut Badalona",
+    "slug": "club-joventut-de-badalona",
+    "shortName": "Joventut",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 4555,
+    "nameCode": "BAD",
+    "disabled": false,
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 3544,
+    "subTeams": []
+   },
+   "awayTeam": {
+    "name": "MoraBanc Andorra",
+    "slug": "morabanc-andorra",
+    "shortName": "MB Andorra",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 1404,
+    "nameCode": "AND",
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 124534,
+    "subTeams": []
+   },
+   "homeScore": {},
+   "awayScore": {},
+   "time": {},
+   "changes": {
+    "changes": [
+     "status.code",
+     "status.description",
+     "status.type"
+    ],
+    "changeTimestamp": 1791040285
+   },
+   "hasGlobalHighlights": false,
+   "crowdsourcingDataDisplayEnabled": false,
+   "id": 16830106,
+   "periods": {
+    "current": "Score",
+    "period1": "1st quarter",
+    "period2": "2nd quarter",
+    "period3": "3rd quarter",
+    "period4": "4th quarter",
+    "overtime": "Overtime"
+   },
+   "slug": "morabanc-andorra-joventut-badalona",
+   "startTimestamp": 1791043200,
+   "finalResultOnly": false,
+   "feedLocked": false,
+   "isEditor": false
+  }
+ ],
+ "hasNextPage": false
+}

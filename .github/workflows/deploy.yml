@@ -1,0 +1,19 @@
+name: Deploy to Mac Mini
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    # The repo's own runner on the Mac mini (~/actions-runner-sofascore)
+    runs-on: [self-hosted, sofascore]
+
+    steps:
+      - name: Pull latest changes
+        # Cron picks up the new code on its next run. Migrations are applied by hand only.
+        run: |
+          cd /Users/nicolaitanghoj/dev/sofascore &&
+          git pull --ff-only origin main &&
+          /opt/homebrew/bin/poetry sync --no-interaction

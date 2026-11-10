@@ -1,0 +1,299 @@
+{
+ "events": [
+  {
+   "tournament": {
+    "name": "Liga ACB",
+    "slug": "liga-acb",
+    "category": {
+     "name": "Spain",
+     "slug": "spain",
+     "sport": {
+      "name": "Basketball",
+      "slug": "basketball",
+      "id": 2
+     },
+     "priority": 0,
+     "country": {
+      "alpha2": "ES",
+      "alpha3": "ESP",
+      "name": "Spain",
+      "slug": "spain"
+     },
+     "id": 109,
+     "flag": "spain",
+     "alpha2": "ES"
+    },
+    "uniqueTournament": {
+     "name": "Liga ACB",
+     "slug": "liga-acb",
+     "primaryColorHex": "#e9510e",
+     "secondaryColorHex": "#b23c0a",
+     "category": {
+      "name": "Spain",
+      "slug": "spain",
+      "sport": {
+       "name": "Basketball",
+       "slug": "basketball",
+       "id": 2
+      },
+      "priority": 0,
+      "country": {
+       "alpha2": "ES",
+       "alpha3": "ESP",
+       "name": "Spain",
+       "slug": "spain"
+      },
+      "id": 109,
+      "flag": "spain",
+      "alpha2": "ES"
+     },
+     "userCount": 9679,
+     "hasPerformanceGraphFeature": false,
+     "liveActivityEnabled": false,
+     "country": {},
+     "id": 264,
+     "hasEventPlayerStatistics": false,
+     "hasBoxScore": true,
+     "displayInverseHomeAwayTeams": false,
+     "hasRating": true
+    },
+    "priority": 97,
+    "isGroup": false,
+    "isLive": false,
+    "id": 271
+   },
+   "season": {
+    "name": "Liga ACB 26/27",
+    "year": "26/27",
+    "editor": false,
+    "id": 100873
+   },
+   "roundInfo": {
+    "round": 3
+   },
+   "customId": "JcksPPZ",
+   "status": {
+    "code": 0,
+    "description": "Not started",
+    "type": "notstarted"
+   },
+   "homeTeam": {
+    "name": "Leyma Basquet Coruña",
+    "slug": "leyma-basquet-coruna",
+    "shortName": "Basquet Coruña",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 1872,
+    "nameCode": "COR",
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 124540,
+    "subTeams": []
+   },
+   "awayTeam": {
+    "name": "Casademont Zaragoza",
+    "slug": "basket-zaragoza",
+    "shortName": "Zaragoza",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 4400,
+    "nameCode": "ZAR",
+    "disabled": false,
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 25134,
+    "subTeams": []
+   },
+   "homeScore": {},
+   "awayScore": {},
+   "time": {},
+   "changes": {
+    "changeTimestamp": 0
+   },
+   "hasGlobalHighlights": false,
+   "crowdsourcingDataDisplayEnabled": false,
+   "id": 16830135,
+   "periods": {
+    "current": "Score",
+    "period1": "1st quarter",
+    "period2": "2nd quarter",
+    "period3": "3rd quarter",
+    "period4": "4th quarter",
+    "overtime": "Overtime"
+   },
+   "slug": "leyma-basquet-coruna-basket-zaragoza",
+   "startTimestamp": 1791648000,
+   "finalResultOnly": false,
+   "feedLocked": false,
+   "isEditor": false
+  },
+  {
+   "tournament": {
+    "name": "Liga ACB",
+    "slug": "liga-acb",
+    "category": {
+     "name": "Spain",
+     "slug": "spain",
+     "sport": {
+      "name": "Basketball",
+      "slug": "basketball",
+      "id": 2
+     },
+     "priority": 0,
+     "country": {
+      "alpha2": "ES",
+      "alpha3": "ESP",
+      "name": "Spain",
+      "slug": "spain"
+     },
+     "id": 109,
+     "flag": "spain",
+     "alpha2": "ES"
+    },
+    "uniqueTournament": {
+     "name": "Liga ACB",
+     "slug": "liga-acb",
+     "primaryColorHex": "#e9510e",
+     "secondaryColorHex": "#b23c0a",
+     "category": {
+      "name": "Spain",
+      "slug": "spain",
+      "sport": {
+       "name": "Basketball",
+       "slug": "basketball",
+       "id": 2
+      },
+      "priority": 0,
+      "country": {
+       "alpha2": "ES",
+       "alpha3": "ESP",
+       "name": "Spain",
+       "slug": "spain"
+      },
+      "id": 109,
+      "flag": "spain",
+      "alpha2": "ES"
+     },
+     "userCount": 9679,
+     "hasPerformanceGraphFeature": false,
+     "liveActivityEnabled": false,
+     "country": {},
+     "id": 264,
+     "hasEventPlayerStatistics": false,
+     "hasBoxScore": true,
+     "displayInverseHomeAwayTeams": false,
+     "hasRating": true
+    },
+    "priority": 97,
+    "isGroup": false,
+    "isLive": false,
+    "id": 271
+   },
+   "season": {
+    "name": "Liga ACB 26/27",
+    "year": "26/27",
+    "editor": false,
+    "id": 100873
+   },
+   "roundInfo": {
+    "round": 3
+   },
+   "customId": "gwbsJPZ",
+   "status": {
+    "code": 0,
+    "description": "Not started",
+    "type": "notstarted"
+   },
+   "homeTeam": {
+    "name": "Unicaja",
+    "slug": "unicaja-malaga",
+    "shortName": "Unicaja",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 6615,
+    "nameCode": "MAL",
+    "disabled": false,
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 3556,
+    "subTeams": []
+   },
+   "awayTeam": {
+    "name": "MoraBanc Andorra",
+    "slug": "morabanc-andorra",
+    "shortName": "MB Andorra",
+    "gender": "M",
+    "sport": {
+     "name": "Basketball",
+     "slug": "basketball",
+     "id": 2
+    },
+    "userCount": 1404,
+    "nameCode": "AND",
+    "national": false,
+    "type": 0,
+    "country": {
+     "alpha2": "ES",
+     "alpha3": "ESP",
+     "name": "Spain",
+     "slug": "spain"
+    },
+    "id": 124534,
+    "subTeams": []
+   },
+   "homeScore": {},
+   "awayScore": {},
+   "time": {},
+   "changes": {
+    "changeTimestamp": 0
+   },
+   "hasGlobalHighlights": false,
+   "crowdsourcingDataDisplayEnabled": false,
+   "id": 16830138,
+   "periods": {
+    "current": "Score",
+    "period1": "1st quarter",
+    "period2": "2nd quarter",
+    "period3": "3rd quarter",
+    "period4": "4th quarter",
+    "overtime": "Overtime"
+   },
+   "slug": "morabanc-andorra-unicaja",
+   "startTimestamp": 1791653400,
+   "finalResultOnly": false,
+   "feedLocked": false,
+   "isEditor": false
+  }
+ ],
+ "hasNextPage": true
+}

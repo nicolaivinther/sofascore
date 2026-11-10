@@ -1,0 +1,45 @@
+{
+ "uniqueTournament": {
+  "name": "Liga ACB",
+  "slug": "liga-acb",
+  "primaryColorHex": "#e9510e",
+  "secondaryColorHex": "#b23c0a",
+  "category": {
+   "name": "Spain",
+   "slug": "spain",
+   "sport": {
+    "name": "Basketball",
+    "slug": "basketball",
+    "id": 2
+   },
+   "priority": 0,
+   "country": {
+    "alpha2": "ES",
+    "name": "Spain"
+   },
+   "id": 109,
+   "flag": "spain",
+   "alpha2": "ES"
+  },
+  "userCount": 9638,
+  "tier": 1,
+  "titleHolderTitles": 2,
+  "mostTitles": 38,
+  "hasRounds": true,
+  "hasGroups": true,
+  "hasPlayoffSeries": true,
+  "hasPerformanceGraphFeature": false,
+  "periodLength": {},
+  "gender": "M",
+  "excludeFromCareerStats": false,
+  "liveActivityEnabled": false,
+  "editorCoverageNeeded": false,
+  "country": {},
+  "id": 264,
+  "startDateTimestamp": 1790380800,
+  "endDateTimestamp": 1814227200,
+  "disabledHomeAwayStandings": false,
+  "displayInverseHomeAwayTeams": false,
+  "hasRating": true
+ }
+}
