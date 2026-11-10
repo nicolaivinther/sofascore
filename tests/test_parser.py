@@ -28,13 +28,6 @@ def test_basketball_event_with_group_and_quarters():
     assert row["has_event_player_statistics"] is True
 
 
-def test_hockey_event_has_three_periods_and_no_fourth():
-    row = parser.parse_event(_load("hockey_event")["event"])
-    assert [row[f"home_p{n}"] for n in range(1, 4)] == [2, 3, 0]
-    assert row["home_p4"] is None and row["home_penalties"] is None
-    assert parser.sport_slug(_load("hockey_event")["event"]) == "ice-hockey"
-
-
 def test_overtime_and_shootout_keys():
     event = _load("event")["event"]
     event["homeScore"] = {

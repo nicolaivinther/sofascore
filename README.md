@@ -1,12 +1,12 @@
 # sofascore
 
-Basketball and hockey data from Sofascore's JSON API for the leagues AsianOdds prices but
+Basketball data from Sofascore's JSON API for the leagues AsianOdds prices but
 Flashscore and Basketball API don't cover: tournaments, seasons, teams, players, games (results and
 the full published schedule), team and player match stats, and standings. Stored in the
 `basketball_stats` Postgres DB in `sofascore_*` tables; `realgm_db` maps them onto canonical later.
 
-The tournaments collected are in [`sofascore/leagues.py`](sofascore/leagues.py) (58 today; the list
-and how it was chosen: BAS-227).
+The tournaments collected are in [`sofascore/leagues.py`](sofascore/leagues.py) (57 basketball leagues
+today; the list and how it was chosen: BAS-227).
 
 ## How it works
 

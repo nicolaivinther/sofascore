@@ -18,13 +18,12 @@ import pytest
 from sofascore import planning, run, store
 from sofascore.client import FetchResult, SofascoreBlockedError
 from sofascore.leagues import SofascoreLeague
-from sofascore.sports import BASKETBALL, HOCKEY
+from sofascore.sports import BASKETBALL
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 ACB = SofascoreLeague(264, BASKETBALL, 1, "Liga ACB")
 SERIE_B = SofascoreLeague(14251, BASKETBALL, 1143, "Serie B")
-U20 = SofascoreLeague(28754, HOCKEY, 2101, "U20 Extraliga Junioru")
-SPORTS = [BASKETBALL.code, HOCKEY.code]
+SPORTS = [BASKETBALL.code]
 CURRENT, OLD = 100873, 64689  # ACB seasons in the fixtures
 
 
@@ -289,21 +288,6 @@ def test_other_sport_rows_are_skipped(conn):
     _backfill(conn, client)
     assert _q(conn, "SELECT COUNT(*) FROM sofascore_events WHERE event_id = %s", other["id"]) == [(0,)]
     assert _q(conn, "SELECT COUNT(*) FROM sofascore_events WHERE season_id = %s", CURRENT) == [(4,)]
-
-
-def test_hockey_league_is_stored_as_hockey(conn):
-    hockey = _load("hockey_event")["event"]
-    base = "/unique-tournament/28754"
-    routes = {
-        base: {"uniqueTournament": {"id": 28754, "name": "U20 Extraliga Junioru"}},
-        f"{base}/seasons": {"seasons": [{"id": 96435, "name": "U20 26/27", "year": "26/27"}]},
-        f"{base}/season/96435/events/last/0": {
-            "events": [hockey],
-            "hasNextPage": False,
-        },
-    }
-    _backfill(conn, FakeClient(routes), (U20,))
-    assert _q(conn, "SELECT sport, home_p3, home_p4 FROM sofascore_events") == [("hockey", 0, None)]
 
 
 def test_reparse_rebuilds_the_typed_tables(conn):

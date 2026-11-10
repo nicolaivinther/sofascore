@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -uo pipefail
-# Sofascore fast run: queue games that started 100 min (hockey 130) to 48 h ago and are not
+# Sofascore fast run: queue games that started 100 min to 48 h ago and are not
 # finished in sofascore_events, fetch each once with its stats and lineups, then the re-checks.
 # Writes only the sofascore_* tables. Mac mini only; the CLI holds a lock, so runs never overlap.
 case "$(hostname)" in

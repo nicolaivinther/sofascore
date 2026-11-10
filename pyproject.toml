@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "sofascore"
 version = "0.1.0"
-description = "Sofascore basketball and hockey data: tournaments, seasons, teams, players, games, stats and standings"
+description = "Sofascore basketball data: tournaments, seasons, teams, players, games, stats and standings"
 authors = ["Nicolai Tanghøj"]
 readme = "README.md"
 packages = [{include = "sofascore"}]

@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 # Score keys Sofascore uses per side. ``overtime`` is one aggregate over every overtime period;
-# ``penalties`` is the hockey shootout tally.
+# ``penalties`` is a shootout tally, which basketball doesn't have.
 PERIOD_KEYS = ("period1", "period2", "period3", "period4")
 FINISHED = "finished"
 OPEN_STATUS_TYPES = frozenset({"notstarted", "inprogress"})

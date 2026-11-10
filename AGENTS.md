@@ -30,8 +30,8 @@ only imports this file.
   `store` (queue + raw store), `parser` (pure JSON -> rows), `loader` (rows -> tables), `run`
   (the CLI), `leagues` (the tournaments collected), `sports`. Hand-applied SQL in `migrations/`.
 * DB: `basketball_stats` (shared with `realgm_db`, `flashscore_stats`, `eliteprospects`). Every
-  table is `sofascore_`-prefixed and carries `sport` (`basketball` / `hockey`, the realgm_db
-  registry codes).
+  table is `sofascore_`-prefixed and carries `sport` (`basketball`, the realgm_db registry
+  code).
 * Ids: keep Sofascore ids everywhere (tournament `tid`, `season_id`, `event_id`, `team_id`,
   `player_id`). Never invent surrogate keys.
 * Raw first: every payload goes to `sofascore_raw`; tables are rebuilt from it (`run reparse`).

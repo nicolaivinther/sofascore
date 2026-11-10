@@ -1,4 +1,4 @@
-"""The sports this collector handles.
+"""The sports this collector handles: basketball only.
 
 ``code`` is the value of every ``sofascore_*.sport`` column and must match the realgm_db sport
 registry (``realgm_db/src/config/sports.py``), which reads these tables later.
@@ -19,10 +19,8 @@ class Sport:
 
 
 BASKETBALL = Sport(code="basketball", sofascore_sport="basketball", result_after_minutes=100)
-# Three 20-minute periods plus stoppages, overtime and a shootout run longer.
-HOCKEY = Sport(code="hockey", sofascore_sport="ice-hockey", result_after_minutes=130)
 
-SPORTS: tuple[Sport, ...] = (BASKETBALL, HOCKEY)
+SPORTS: tuple[Sport, ...] = (BASKETBALL,)
 SPORT_CODES: tuple[str, ...] = tuple(s.code for s in SPORTS)
 
 
