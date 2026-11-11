@@ -26,7 +26,6 @@ from sofascore.transport import CAPTCHA_COOKIE, CAPTCHA_HEADER, SITE, Response
 
 CAPTCHA_URL = f"{SITE}/captcha.html?redirectUrl={quote(SITE + '/', safe='')}"
 SOLVE_TIMEOUT_S = 90
-TURNSTILE_FRAME = "challenges.cloudflare.com"
 # fetch() from the page: the browser adds its own headers; we add only the token and the ETag.
 _FETCH_JS = """
 async ([url, headers]) => {
@@ -74,7 +73,6 @@ class BrowserSession:  # pylint: disable=too-many-instance-attributes
         profile_root: Path,
         *,
         channel: str = "chrome",
-        auto_click: bool = True,
         solve_timeout_s: float = SOLVE_TIMEOUT_S,
         clock: Callable[[], float] = time.monotonic,
         sleep: Callable[[float], None] = time.sleep,
@@ -82,7 +80,6 @@ class BrowserSession:  # pylint: disable=too-many-instance-attributes
         self.profile_root = profile_root
         self._profile_dir: Path | None = None
         self.channel = channel
-        self.auto_click = auto_click
         self.solve_timeout_s = solve_timeout_s
         self.clock = clock
         self.sleep = sleep
@@ -91,7 +88,10 @@ class BrowserSession:  # pylint: disable=too-many-instance-attributes
         self._page: Any = None
 
     def solve(self) -> CaptchaToken:
-        """Open ``captcha.html`` and wait for the page to store ``sofa_captcha``."""
+        """Open ``captcha.html`` and wait for the page to store ``sofa_captcha``.
+
+        Nothing is clicked: in a visible Chrome, Turnstile passes by itself.
+        """
         page = self._open()
         page.goto(CAPTCHA_URL, wait_until="domcontentloaded")
         deadline = self.clock() + self.solve_timeout_s
@@ -99,8 +99,6 @@ class BrowserSession:  # pylint: disable=too-many-instance-attributes
             value = self._cookie(CAPTCHA_COOKIE)
             if value:
                 return CaptchaToken.parse(value)
-            if self.auto_click:
-                self._click_checkbox(page)
             self.sleep(1.0)
         raise CaptchaError(f"no {CAPTCHA_COOKIE} cookie after {self.solve_timeout_s:.0f} s")
 
@@ -143,16 +141,3 @@ class BrowserSession:  # pylint: disable=too-many-instance-attributes
             if cookie.get("name") == name and cookie.get("value"):
                 return str(cookie["value"])
         return None
-
-    @staticmethod
-    def _click_checkbox(page: Any) -> None:
-        """Tick the Turnstile box when it asks for a click; most visits pass without one."""
-        for frame in page.frames:
-            if TURNSTILE_FRAME not in frame.url:
-                continue
-            box = frame.locator("input[type=checkbox]")
-            try:
-                if box.count() and box.first.is_visible():
-                    box.first.click(timeout=2000)
-            except Exception:  # pylint: disable=broad-except
-                return  # the widget re-renders while it works; the next poll tries again

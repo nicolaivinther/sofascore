@@ -6,7 +6,7 @@
     python -m sofascore.run work [--max-minutes 60]      # drain the queue only
     python -m sofascore.run reparse                      # rebuild typed tables from raw
     python -m sofascore.run status                       # queue + coverage summary
-    python -m sofascore.run captcha                      # pass the check by hand, fetch one page
+    python -m sofascore.run captcha                      # pass the check in Chrome, fetch one page
 
 Every command takes ``--dry-run`` (plan and report; write and fetch nothing), ``--sport`` and
 ``--tid``. The rules (fetch once when done, re-check +6h/+36h/+7d, freeze) are in ARCHITECTURE.md.
@@ -63,7 +63,7 @@ BUDGET_MINUTES = {"fast": 25.0, "daily": 90.0, "backfill": 4320.0, "work": 4320.
 MAX_COOLDOWNS = {"backfill": 3, "work": 3}
 BLOCK_MARKER = "sofascore_blocked_until"
 BROWSER_PROFILES = "sofascore_browser_profiles"
-# How long `captcha` waits for a person to pass the check, and the page it then fetches.
+# How long `captcha` waits for the check to pass, and the page it then fetches.
 MANUAL_SOLVE_TIMEOUT_S = 300
 CHECK_PATH = "/unique-tournament/264/seasons"
 
@@ -451,15 +451,14 @@ def build_client(config: Config, state_dir: Path) -> SofascoreClient:
 
 
 def check_by_hand(config: Config, state_dir: Path, dry_run: bool) -> int:
-    """Open the captcha page in a Chrome window for a person to pass (no auto-click), then fetch
-    one page from it: shows whether a solved browser gets data from this machine.
+    """Open the captcha page in a Chrome window, wait for the check to pass, then fetch one page
+    from it: shows whether the browser gets data from this machine.
     """
     if dry_run:
         return 0
     browser = BrowserSession(
         state_dir / BROWSER_PROFILES,
         channel=config.SOFASCORE_BROWSER_CHANNEL,
-        auto_click=False,
         solve_timeout_s=MANUAL_SOLVE_TIMEOUT_S,
     )
     try:

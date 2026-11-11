@@ -53,8 +53,8 @@ def test_event_without_unique_tournament_is_dropped():
 
 def test_events_page_and_team_ids():
     page = _load("events_last_complete")
-    rows = parser.parse_events(page)
-    assert len(rows) == len(page["events"]) and all(r["tid"] == 264 for r in rows)
+    rows = [parser.parse_event(event) for event in page["events"]]
+    assert all(r is not None and r["tid"] == 264 for r in rows)
     ids = parser.event_team_ids(page)
     assert len(ids) == len(set(ids)) and ids
     assert parser.event_team_ids(_load("event")) == [331094, 369729]

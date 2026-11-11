@@ -47,7 +47,7 @@ poetry run python -m sofascore.runners.apply_migration migrations/001_sofascore_
 poetry run python -m sofascore.run backfill --dry-run   # what would be queued
 poetry run python -m sofascore.run backfill             # every season of every league
 poetry run python -m sofascore.run status               # queue counts and coverage
-poetry run python -m sofascore.run captcha              # pass the captcha by hand, fetch one page
+poetry run python -m sofascore.run captcha              # pass the check in Chrome, fetch one page
 poetry run pytest                                       # needs local Postgres binaries
 ```
 

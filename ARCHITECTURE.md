@@ -21,9 +21,8 @@
 - **On a challenge** the client has the browser solve (at most once per 10 minutes) and from then on
   sends every request of the run as `fetch()` from that page, still paced. The token lasts an hour;
   when it expires mid-run the same browser solves again. A challenge right after a solve, or a
-  failed solve, is a refusal like any other. `python -m sofascore.run captcha` opens a visible
-  Chrome window for a person to pass by hand (no auto-click) and fetches one page from it, to
-  check this machine.
+  failed solve, is a refusal like any other. Nothing is ever clicked. `python -m sofascore.run captcha`
+  passes the check in Chrome and fetches one page from it, to check this machine.
 - **Rate limit:** Sofascore answered 403 after about 1,500 requests at 2.7 a second, and after about
   2,150 at one per ~3.1 s; the second block still held after an hour (2026-11-10). At one per ~4.1 s
   it took 3,000 without one. Those refusals were not told apart from captcha challenges, which the
