@@ -28,5 +28,14 @@ class Config:  # pylint: disable=invalid-name,too-many-instance-attributes
     SOFASCORE_COOLDOWN_MIN: float = field(
         default_factory=lambda: float(os.environ.get("SOFASCORE_COOLDOWN_MIN", "60"))
     )
-    # Where the "blocked until" marker lives; relative to the repo root the runs start in.
+    # Where the "blocked until" marker, the captcha token and the browser profile live; relative to
+    # the repo root the runs start in.
     SOFASCORE_STATE_DIR: str = field(default_factory=lambda: os.environ.get("SOFASCORE_STATE_DIR", "logs"))
+    # The browser that answers a captcha challenge: a Playwright channel ("chrome" = the installed
+    # Google Chrome, "chromium" = `patchright install chromium`), and whether it shows a window.
+    SOFASCORE_BROWSER_CHANNEL: str = field(
+        default_factory=lambda: os.environ.get("SOFASCORE_BROWSER_CHANNEL", "chrome")
+    )
+    SOFASCORE_BROWSER_HEADLESS: bool = field(
+        default_factory=lambda: os.environ.get("SOFASCORE_BROWSER_HEADLESS", "1") not in ("0", "false", "")
+    )

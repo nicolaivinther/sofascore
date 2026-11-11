@@ -38,6 +38,8 @@ class FakeClient:
         self.routes = routes  # a reference: tests add routes as the "site" changes
         self.calls: list[tuple[str, str | None]] = []
         self.request_count = 0
+        self.solve_count = 0
+        self.browser_request_count = 0
         self.unchanged: set[str] = set()
 
     def get(self, path, etag=None):
@@ -379,6 +381,16 @@ def test_errors_are_retried_then_failed_with_the_reason(conn):
         _q(conn, "UPDATE sofascore_queue SET refresh_after = NULL RETURNING 1")
     status, attempts, error = _q(conn, "SELECT status, attempts, last_error FROM sofascore_queue")[0]
     assert (status, attempts) == ("failed", run.MAX_ATTEMPTS) and "KeyError" in error
+
+
+def test_a_run_of_failures_stops_the_run(conn, monkeypatch):
+    monkeypatch.setattr(run, "MAX_CONSECUTIVE_ERRORS", 2)
+    bad = {"no": "uniqueTournament key"}
+    client = FakeClient({f"/unique-tournament/{tid}": bad for tid in (1, 2, 3)})
+    _seed(conn, [planning.tournament_item("basketball", tid, 100) for tid in (1, 2, 3)])
+    with pytest.raises(run.CollectorFailingError, match="2 items failed in a row"):
+        _work(conn, client)
+    assert len(client.calls) == 2
 
 
 def _serie_b_routes(game_started_hours_ago=None):

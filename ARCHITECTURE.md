@@ -2,19 +2,31 @@
 
 ## Access: read this before debugging a 403
 
-- `www.sofascore.com/api/v1/...` answers a real browser and the `cloudscraper` Firefox/Windows
-  profile (`client.DEFAULT_BROWSER`). `api.sofascore.com` 403s every profile; plain `requests` is
-  fingerprint-blocked. No key, login or cookies.
+- `www.sofascore.com/api/v1/...` is the only host (`api.sofascore.com` 403s everything). Plain
+  `requests` is fingerprint-blocked, so `transport.CurlTransport` sends through `curl_cffi` with one
+  desktop Chrome profile per session, opens the home page once first, and sends the headers of a
+  same-origin `fetch()` (`transport.API_HEADERS`).
+- **Captcha challenge:** the API can answer 403 `{"error": {"reason": "challenge"}}`. The web app
+  then opens `/captcha.html`, which runs Cloudflare Turnstile, posts the result to
+  `/api/v1/token/captcha` and gets a JWT valid for one hour. The app keeps it as the `sofa_captcha`
+  cookie and sends it as `X-Captcha`. `captcha.BrowserSession` does the same in the installed Google
+  Chrome through patchright (a Playwright that hides automation; a plain automated browser fails
+  Turnstile with error 600010), with its own profile in `logs/sofascore_browser_profile`. The token
+  is kept in `logs/sofascore_captcha_token` (mode 600), so later runs reuse it until it expires.
+- **On a challenge** the client gets a token (at most one solve per 10 minutes) and sends the request
+  again with it. If curl is still challenged, it sends it from the browser page, and the browser
+  then sends everything for 10 minutes. A challenge that survives all that is a refusal like any
+  other. `python -m sofascore.run captcha` opens a visible Chrome window for a person to pass the
+  check by hand (no auto-click); `SOFASCORE_BROWSER_HEADLESS=0` makes the runs show their window.
 - **Rate limit:** Sofascore answered 403 after about 1,500 requests at 2.7 a second, and after about
   2,150 at one per ~3.1 s; the second block still held after an hour (2026-11-10). At one per ~4.1 s
-  it took 3,000 without one. So the client pauses a random 4–6 s between requests and never retries
-  a 403/429: it raises `SofascoreBlockedError`, the item goes back to pending (no attempt counted), and
-  `logs/sofascore_blocked_until` stops every run from asking for 60 minutes. A backfill waits the
+  it took 3,000 without one. So the client pauses a random 4–6 s between requests and never
+  retries any other 403/429: it raises `SofascoreBlockedError`, the item goes back to pending (no
+  attempt counted), and `logs/sofascore_blocked_until` stops every run from asking for 60 minutes. A backfill waits the
   hour out and carries on (at most 3 times per run); a refusal on the first request after a
   cooldown, or in a cron run, stops the run (exit code 2, Sentry).
-- If 403s persist after cooldowns, the fingerprint defence may have changed: re-probe by hand,
-  never loop. Fallback if cloudscraper stops working: `curl_cffi` (browser TLS impersonation),
-  not installed.
+- Twenty failed items in a row stop the run (exit code 3, Sentry) instead of burning the queue.
+- If refusals persist after cooldowns, the defence may have changed: re-probe by hand, never loop.
 - To look at the API by hand, open any `https://www.sofascore.com/api/v1/...` URL in a browser,
   or `fetch('/api/v1/...')` from a sofascore.com page. The category list
   (`/sport/basketball/categories`) hides out-of-season countries; `/search/unique-tournaments?q=`

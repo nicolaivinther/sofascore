@@ -9,8 +9,9 @@ packages = [{include = "sofascore"}]
 [tool.poetry.dependencies]
 python = "^3.13"
 psycopg2-binary = "^2.9.9"
-cloudscraper = "^1.2.71"
 sentry-sdk = "^2.19.0"
+curl-cffi = "^0.13"
+patchright = "^1.55"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
