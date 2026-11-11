@@ -9,7 +9,7 @@ import stat
 import pytest
 
 from sofascore.captcha import CaptchaError, CaptchaToken, TokenStore
-from sofascore.transport import API_HEADERS, CAPTCHA_HEADER, SITE, CurlTransport, Response
+from sofascore.transport import API_HEADERS, CAPTCHA_HEADER, SITE, CurlTransport, Response, requested_with
 
 API_URL = f"{SITE}/api/v1/unique-tournament/264"
 
@@ -46,7 +46,9 @@ class FakeCurlSession:
 def _transport():
     session = FakeCurlSession()
     sleeps: list = []
-    transport = CurlTransport(session, choice=lambda profiles: profiles[0], sleep=sleeps.append)
+    transport = CurlTransport(
+        session, choice=lambda profiles: profiles[0], sleep=sleeps.append, clock=lambda: 1_794_389_400.0
+    )
     return transport, session, sleeps
 
 
@@ -128,3 +130,18 @@ def test_token_store_round_trips_privately(tmp_path):
 def test_an_unreadable_stored_token_is_ignored(tmp_path):
     (tmp_path / "token").write_text("garbage", encoding="utf-8")
     assert TokenStore(tmp_path / "token").load() is None
+
+
+def test_requested_with_is_the_web_apps_30_minute_slot_hash():
+    # Seen in Sofascore's own web app on 2026-11-11 09:17 UTC: x-requested-with 9bf2e5.
+    assert requested_with(1_794_388_620.0) == "9bf2e5"
+    slot_start = 996_882 * 1800
+    assert (
+        requested_with(slot_start) == requested_with(slot_start + 1799) != requested_with(slot_start + 1800)
+    )
+
+
+def test_api_calls_carry_x_requested_with():
+    transport, session, _ = _transport()
+    transport.get(API_URL, {})
+    assert session.calls[1][1]["X-Requested-With"] == requested_with(1_794_389_400.0)

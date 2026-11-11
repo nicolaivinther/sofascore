@@ -7,6 +7,7 @@ belongs to the client) and never retries.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import random
 import time
@@ -35,6 +36,11 @@ API_HEADERS: dict[str, str | None] = {
     "Priority": "u=1, i",
 }
 REQUEST_TIMEOUT_S = 30
+
+
+def requested_with(now: float) -> str:
+    """The web app's ``X-Requested-With``: SHA-256 of the 30-minute slot number, first 6 hex digits."""
+    return hashlib.sha256(str(int(now) // 1800).encode()).hexdigest()[:6]
 
 
 @dataclass(frozen=True)
@@ -94,7 +100,9 @@ class CurlTransport:
         choice: Callable[[Sequence[str]], str] = random.choice,
         sleep: Callable[[float], None] = time.sleep,
         warm_up_pause_s: tuple[float, float] = (1.0, 3.0),
+        clock: Callable[[], float] = time.time,
     ) -> None:
+        self.clock = clock
         self.profile = choice(profiles)
         self.session = session if session is not None else curl_requests.Session(impersonate=self.profile)
         self.sleep = sleep
@@ -107,7 +115,11 @@ class CurlTransport:
         token = headers.get(CAPTCHA_HEADER)
         if token:
             self.session.cookies.set(CAPTCHA_COOKIE, token, domain="www.sofascore.com", path="/")
-        merged: dict[str, str | None] = {**API_HEADERS, **headers}
+        merged: dict[str, str | None] = {
+            **API_HEADERS,
+            "X-Requested-With": requested_with(self.clock()),
+            **headers,
+        }
         response = self.session.get(url, headers=merged, timeout=REQUEST_TIMEOUT_S)
         return Response(response.status_code, dict(response.headers), response.text)
 

@@ -5,7 +5,8 @@
 - `www.sofascore.com/api/v1/...` is the only host (`api.sofascore.com` 403s everything). Plain
   `requests` is fingerprint-blocked, so `transport.CurlTransport` sends through `curl_cffi` with one
   desktop Chrome profile per session, opens the home page once first, and sends the headers of a
-  same-origin `fetch()` (`transport.API_HEADERS`).
+  same-origin `fetch()` (`transport.API_HEADERS`), including the web app's `X-Requested-With`
+  (first 6 hex digits of SHA-256 of the 30-minute slot number, `transport.requested_with`).
 - **Captcha challenge:** the API can answer 403 `{"error": {"reason": "challenge"}}`. The web app
   then opens `/captcha.html`, which runs Cloudflare Turnstile, posts the result to
   `/api/v1/token/captcha` and gets a JWT valid for one hour. The app keeps it as the `sofa_captcha`

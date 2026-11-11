@@ -145,9 +145,7 @@ class BrowserSession:
     def _open(self) -> Any:
         if self._page is None:
             # Imported here: a run that is never challenged never loads the browser driver.
-            from patchright.sync_api import (  # pylint: disable=import-outside-toplevel
-                sync_playwright,
-            )
+            from patchright.sync_api import sync_playwright  # pylint: disable=import-outside-toplevel
 
             self.profile_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
             self._playwright = sync_playwright().start()
