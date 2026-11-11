@@ -6,7 +6,7 @@
     python -m sofascore.run work [--max-minutes 60]      # drain the queue only
     python -m sofascore.run reparse                      # rebuild typed tables from raw
     python -m sofascore.run status                       # queue + coverage summary
-    python -m sofascore.run captcha                      # pass the check by hand in a Chrome window
+    python -m sofascore.run captcha                      # pass the check by hand, fetch one page
 
 Every command takes ``--dry-run`` (plan and report; write and fetch nothing), ``--sport`` and
 ``--tid``. The rules (fetch once when done, re-check +6h/+36h/+7d, freeze) are in ARCHITECTURE.md.
@@ -29,14 +29,15 @@ from pathlib import Path
 from typing import Any
 
 from sofascore import loader, planning, store
-from sofascore.captcha import BrowserSession, TokenStore
-from sofascore.client import SofascoreBlockedError, SofascoreClient, SofascoreHTTPError
+from sofascore.captcha import BrowserSession
+from sofascore.client import DEFAULT_BASE_URL, SofascoreBlockedError, SofascoreClient, SofascoreHTTPError
 from sofascore.config.config import Config
 from sofascore.config.logging import setup_logger
 from sofascore.config.sentry_config import sentry_report_error, setup_sentry
 from sofascore.database.connection import connect
 from sofascore.leagues import LEAGUES, SofascoreLeague
 from sofascore.sports import SPORT_CODES, get_sport
+from sofascore.transport import CAPTCHA_HEADER
 
 logger = setup_logger("sofascore")
 
@@ -61,10 +62,10 @@ BUDGET_MINUTES = {"fast": 25.0, "daily": 90.0, "backfill": 4320.0, "work": 4320.
 # stop at the first one.
 MAX_COOLDOWNS = {"backfill": 3, "work": 3}
 BLOCK_MARKER = "sofascore_blocked_until"
-TOKEN_FILE = "sofascore_captcha_token"
-BROWSER_PROFILE = "sofascore_browser_profile"
-# How long `captcha` waits for a person to pass the check.
+BROWSER_PROFILES = "sofascore_browser_profiles"
+# How long `captcha` waits for a person to pass the check, and the page it then fetches.
 MANUAL_SOLVE_TIMEOUT_S = 300
+CHECK_PATH = "/unique-tournament/264/seasons"
 
 # A season is complete when it is not its tournament's newest season, nothing in it is scheduled
 # or live, its newest game is past the grace period, and its schedule page 404s.
@@ -440,27 +441,24 @@ def _collect(  # pylint: disable=too-many-arguments,too-many-positional-argument
 def build_client(config: Config, state_dir: Path) -> SofascoreClient:
     """The collector's client: curl first, the browser for challenges, the token kept on disk."""
     browser = BrowserSession(
-        state_dir / BROWSER_PROFILE,
+        state_dir / BROWSER_PROFILES,
         channel=config.SOFASCORE_BROWSER_CHANNEL,
         headless=config.SOFASCORE_BROWSER_HEADLESS,
     )
     return SofascoreClient(
         browser=browser,
-        tokens=TokenStore(state_dir / TOKEN_FILE),
         pause_seconds=(config.SOFASCORE_PAUSE_MIN_S, config.SOFASCORE_PAUSE_MAX_S),
     )
 
 
-def solve_by_hand(config: Config, state_dir: Path, dry_run: bool) -> int:
-    """Open the captcha page in a Chrome window; a person passes it (no auto-click); keep the token."""
-    tokens = TokenStore(state_dir / TOKEN_FILE)
-    current = tokens.load()
-    if current is not None and current.usable(time.time()):
-        logger.info("the stored captcha token is valid until %s", _utc(current.expires_at))
+def check_by_hand(config: Config, state_dir: Path, dry_run: bool) -> int:
+    """Open the captcha page in a Chrome window for a person to pass (no auto-click), then fetch
+    one page from it: shows whether a solved browser gets data from this machine.
+    """
     if dry_run:
         return 0
     browser = BrowserSession(
-        state_dir / BROWSER_PROFILE,
+        state_dir / BROWSER_PROFILES,
         channel=config.SOFASCORE_BROWSER_CHANNEL,
         headless=False,
         auto_click=False,
@@ -468,14 +466,15 @@ def solve_by_hand(config: Config, state_dir: Path, dry_run: bool) -> int:
     )
     try:
         token = browser.solve()
+        logger.info("captcha passed; token valid until %s", _utc(token.expires_at))
+        response = browser.get(f"{DEFAULT_BASE_URL}{CHECK_PATH}", {CAPTCHA_HEADER: token.value})
     except Exception as exc:  # pylint: disable=broad-except
-        logger.error("no captcha token: %s", exc)
+        logger.error("captcha check failed: %s", exc)
         return EXIT_BLOCKED
     finally:
         browser.close()
-    tokens.save(token)
-    logger.info("captcha token kept; valid until %s", _utc(token.expires_at))
-    return 0
+    logger.info("%s from the solved browser: HTTP %d", CHECK_PATH, response.status)
+    return 0 if response.status == 200 else EXIT_BLOCKED
 
 
 def _utc(epoch: float) -> str:
@@ -502,7 +501,7 @@ def main(  # pylint: disable=too-many-return-statements,too-many-locals
 
     state_dir = Path(config.SOFASCORE_STATE_DIR)
     if args.command == "captcha":
-        return solve_by_hand(config, state_dir, args.dry_run)
+        return check_by_hand(config, state_dir, args.dry_run)
     sports = sorted(set(args.sport or [lg.sport.code for lg in LEAGUES]))
     leagues = _leagues(sports, args.tid)
     conn = connect(config)

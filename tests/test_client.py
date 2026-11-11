@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from sofascore.captcha import CaptchaError, CaptchaToken, TokenStore
+from sofascore.captcha import CaptchaError, CaptchaToken
 from sofascore.client import DEFAULT_PAUSE_SECONDS, SofascoreBlockedError, SofascoreClient, SofascoreHTTPError
 from sofascore.transport import CAPTCHA_HEADER, Response
 
@@ -61,10 +61,10 @@ class FakeBrowser(FakeTransport):
         return token
 
 
-def _client(*responses, browser=None, tokens=None, clock=lambda: NOW):
+def _client(*responses, browser=None, clock=lambda: NOW):
     sleeps: list = []
     transport = FakeTransport(responses)
-    client = SofascoreClient(transport, browser=browser, tokens=tokens, sleep=sleeps.append, clock=clock)
+    client = SofascoreClient(transport, browser=browser, sleep=sleeps.append, clock=clock)
     return client, transport, sleeps
 
 
@@ -129,30 +129,22 @@ def test_retries_exhausted_raise():
         client.get(PATH)
 
 
-def test_a_challenge_is_solved_and_the_request_sent_again_with_the_token(tmp_path):
-    store = TokenStore(tmp_path / "token")
-    browser = FakeBrowser()
-    client, transport, sleeps = _client(CHALLENGE, ok({"ok": 1}), browser=browser, tokens=store)
+def test_a_challenge_is_solved_and_the_browser_sends_from_then_on():
+    browser = FakeBrowser([ok({"ok": 1}), ok({"next": 1})])
+    client, transport, sleeps = _client(CHALLENGE, browser=browser)
     assert client.get(PATH).data == {"ok": 1}
-    assert transport.calls[0][1] == {} and transport.calls[1][1] == {CAPTCHA_HEADER: JWT}
-    assert browser.solves == 1 and client.solve_count == 1 and len(sleeps) == 1  # paced as usual
-    assert store.load() == TOKEN
+    assert client.get(PATH).data == {"next": 1}
+    assert len(transport.calls) == 1 and transport.calls[0][1] == {}  # curl only before the challenge
+    assert [h for _, h in browser.calls] == [{CAPTCHA_HEADER: JWT}, {CAPTCHA_HEADER: JWT}]
+    assert browser.solves == 1 and client.solve_count == 1 and client.browser_request_count == 2
+    assert len(sleeps) == 2  # paced as usual, whichever transport sends
 
 
-def test_the_stored_token_is_sent_from_the_first_request(tmp_path):
-    store = TokenStore(tmp_path / "token")
-    store.save(TOKEN)
-    client, transport, _ = _client(ok(), tokens=store)
-    client.get(PATH)
-    assert transport.calls[0][1] == {CAPTCHA_HEADER: JWT}
-
-
-def test_a_token_about_to_expire_is_not_sent(tmp_path):
-    store = TokenStore(tmp_path / "token")
-    store.save(CaptchaToken.parse(_jwt(NOW + 60)))
-    client, transport, _ = _client(ok(), tokens=store)
-    client.get(PATH)
-    assert transport.calls[0][1] == {}
+def test_the_browser_keeps_the_etag():
+    browser = FakeBrowser([Response(304)])
+    client, _, _ = _client(CHALLENGE, browser=browser)
+    assert client.get(PATH, 'W/"a"').unchanged
+    assert browser.calls[0][1] == {"If-None-Match": 'W/"a"', CAPTCHA_HEADER: JWT}
 
 
 def test_without_a_browser_a_challenge_is_a_block():
@@ -169,39 +161,33 @@ def test_a_failed_solve_is_a_block():
         client.get(PATH)
 
 
-def test_curl_still_challenged_falls_back_to_the_browser_page_and_stays_there():
-    now = [NOW]
-    browser = FakeBrowser([ok({"via": "browser"}), ok({"again": 1})])
-    client, transport, _ = _client(CHALLENGE, CHALLENGE, ok(), browser=browser, clock=lambda: now[0])
-    assert client.get(PATH).data == {"via": "browser"}
-    assert browser.calls[0][1] == {CAPTCHA_HEADER: JWT}
-    assert client.get(PATH).data == {"again": 1}  # still inside the browser-first window
-    now[0] += client.browser_first_s + 1
-    client.get(PATH)  # window over: curl again
-    assert len(transport.calls) == 3 and client.browser_request_count == 2
-
-
-def test_challenged_everywhere_is_a_block_and_curl_takes_over_again():
+def test_the_browser_challenged_right_after_a_solve_is_a_block():
     browser = FakeBrowser([CHALLENGE])
-    client, transport, _ = _client(CHALLENGE, CHALLENGE, ok(), browser=browser)
+    client, _, _ = _client(CHALLENGE, browser=browser)
     with pytest.raises(SofascoreBlockedError, match="challenge"):
         client.get(PATH)
-    client.get(PATH)
-    assert len(transport.calls) == 3 and len(browser.calls) == 1
+    assert browser.solves == 1
 
 
-def test_a_second_challenge_right_after_a_solve_is_a_block_not_another_solve():
+def test_an_expired_token_is_solved_again_in_the_same_browser():
     now = [NOW]
-    browser = FakeBrowser(tokens=[TOKEN, TOKEN])
-    client, _, _ = _client(CHALLENGE, ok(), CHALLENGE, CHALLENGE, ok(), browser=browser, clock=lambda: now[0])
+    browser = FakeBrowser([ok(), CHALLENGE, ok({"again": 1})], tokens=[TOKEN, TOKEN])
+    client, _, _ = _client(CHALLENGE, browser=browser, clock=lambda: now[0])
+    client.get(PATH)
+    now[0] += 3600
+    assert client.get(PATH).data == {"again": 1}
+    assert browser.solves == 2
+
+
+def test_a_second_challenge_soon_after_a_solve_is_a_block_not_another_solve():
+    now = [NOW]
+    browser = FakeBrowser([ok(), CHALLENGE], tokens=[TOKEN, TOKEN])
+    client, _, _ = _client(CHALLENGE, browser=browser, clock=lambda: now[0])
     client.get(PATH)
     now[0] += 60
     with pytest.raises(SofascoreBlockedError):
         client.get(PATH)
     assert browser.solves == 1
-    now[0] += client.min_solve_interval_s
-    client.get(PATH)  # long enough after: solving again is allowed
-    assert browser.solves == 2
 
 
 def test_close_closes_transport_and_browser():

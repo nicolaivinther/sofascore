@@ -10,15 +10,18 @@
 - **Captcha challenge:** the API can answer 403 `{"error": {"reason": "challenge"}}`. The web app
   then opens `/captcha.html`, which runs Cloudflare Turnstile, posts the result to
   `/api/v1/token/captcha` and gets a JWT valid for one hour. The app keeps it as the `sofa_captcha`
-  cookie and sends it as `X-Captcha`. `captcha.BrowserSession` does the same in the installed Google
-  Chrome through patchright (a Playwright that hides automation; a plain automated browser fails
-  Turnstile with error 600010), with its own profile in `logs/sofascore_browser_profile`. The token
-  is kept in `logs/sofascore_captcha_token` (mode 600), so later runs reuse it until it expires.
-- **On a challenge** the client gets a token (at most one solve per 10 minutes) and sends the request
-  again with it. If curl is still challenged, it sends it from the browser page, and the browser
-  then sends everything for 10 minutes. A challenge that survives all that is a refusal like any
-  other. `python -m sofascore.run captcha` opens a visible Chrome window for a person to pass the
-  check by hand (no auto-click); `SOFASCORE_BROWSER_HEADLESS=0` makes the runs show their window.
+  cookie and sends it as `X-Captcha`. **The token works only inside the browser session that solved
+  it:** curl with the same token, and a new Chrome launch (visible or headless) with it, are both
+  challenged again. So it is never stored.
+- `captcha.BrowserSession` passes the challenge in the installed Google Chrome through patchright (a
+  Playwright that hides automation; a plain automated browser fails Turnstile with error 600010),
+  with a fresh profile per launch under `logs/sofascore_browser_profiles/` (deleted on close).
+- **On a challenge** the client has the browser solve (at most once per 10 minutes) and from then on
+  sends every request of the run as `fetch()` from that page, still paced. The token lasts an hour;
+  when it expires mid-run the same browser solves again. A challenge right after a solve, or a
+  failed solve, is a refusal like any other. `python -m sofascore.run captcha` opens a visible
+  Chrome window for a person to pass by hand (no auto-click) and fetches one page from it, to
+  check this machine; `SOFASCORE_BROWSER_HEADLESS=0` makes the runs show their window.
 - **Rate limit:** Sofascore answered 403 after about 1,500 requests at 2.7 a second, and after about
   2,150 at one per ~3.1 s; the second block still held after an hour (2026-11-10). At one per ~4.1 s
   it took 3,000 without one. So the client pauses a random 4–6 s between requests and never

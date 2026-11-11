@@ -5,10 +5,11 @@
 - conditional requests: the caller passes the stored ETag, an unchanged resource comes back as a
   0-byte 304;
 - exponential backoff on 5xx;
-- a **challenge** (403 ``reason: challenge``) is answered: the browser gets a captcha token, the
-  request is sent once more with it, and if curl is still refused, once more from the browser
-  page, which then sends everything for ``browser_first_s``;
-- any other 403, a 429, a challenge that comes back right after a solve, or a solve that fails
+- requests go through curl until Sofascore answers a **challenge** (403 ``reason: challenge``).
+  Then the browser passes the captcha, and from then on every request of this client is sent
+  from that browser page: the token only works inside the browser session that earned it (not
+  from curl, not from a new browser launch);
+- any other 403, a 429, a challenge that comes back soon after a solve, or a solve that fails
   **raises** :class:`SofascoreBlockedError` at once: that is a real refusal, and the worker decides
   between a long cooldown and stopping.
 """
@@ -21,17 +22,16 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from sofascore.captcha import BrowserSession, CaptchaToken, TokenStore
+from sofascore.captcha import BrowserSession, CaptchaToken
 from sofascore.transport import CAPTCHA_HEADER, CurlTransport, Response, Transport
 
 DEFAULT_BASE_URL = "https://www.sofascore.com/api/v1"
 DEFAULT_PAUSE_SECONDS = (4.0, 6.0)
 RETRY_STATUSES = frozenset({500, 502, 503, 504})
 LIMIT_STATUSES = frozenset({403, 429})
-# A second challenge this soon after a solve means the token is not what is missing.
+# A second challenge this soon after a solve means the token is not what is missing. Longer
+# than this (the token lasts an hour), the browser may solve again.
 MIN_SOLVE_INTERVAL_S = 600.0
-# After the browser got through where curl did not, it sends every request for this long.
-BROWSER_FIRST_S = 600.0
 
 
 class SofascoreBlockedError(RuntimeError):
@@ -69,26 +69,22 @@ class SofascoreClient:  # pylint: disable=too-many-instance-attributes
         transport: Transport | None = None,
         *,
         browser: BrowserSession | None = None,
-        tokens: TokenStore | None = None,
         base_url: str = DEFAULT_BASE_URL,
         pause_seconds: tuple[float, float] = DEFAULT_PAUSE_SECONDS,
         max_retries: int = 5,
         backoff_base_seconds: float = 5.0,
         min_solve_interval_s: float = MIN_SOLVE_INTERVAL_S,
-        browser_first_s: float = BROWSER_FIRST_S,
         sleep: Callable[[float], None] = time.sleep,
         uniform: Callable[[float, float], float] = random.uniform,
         clock: Callable[[], float] = time.time,
     ) -> None:
         self.transport: Transport = transport if transport is not None else CurlTransport()
         self.browser = browser
-        self.tokens = tokens or TokenStore(None)
         self.base_url = base_url.rstrip("/")
         self.pause_seconds = pause_seconds
         self.max_retries = max_retries
         self.backoff_base_seconds = backoff_base_seconds
         self.min_solve_interval_s = min_solve_interval_s
-        self.browser_first_s = browser_first_s
         self.sleep = sleep
         self.uniform = uniform
         self.clock = clock
@@ -97,7 +93,6 @@ class SofascoreClient:  # pylint: disable=too-many-instance-attributes
         self.browser_request_count = 0
         self._token: CaptchaToken | None = None
         self._solved_at: float | None = None
-        self._browser_until = 0.0
 
     def get(self, path: str, etag: str | None = None) -> FetchResult:
         """Fetch one API path (``/unique-tournament/264/seasons``), conditionally on ``etag``."""
@@ -128,24 +123,13 @@ class SofascoreClient:  # pylint: disable=too-many-instance-attributes
         if self.request_count:
             self.sleep(self.uniform(*self.pause_seconds))
         self.request_count += 1
-        sent = dict(headers)
-        token = self._current_token()
-        if token is not None:
-            sent[CAPTCHA_HEADER] = token.value
-        if self.browser is not None and self.clock() < self._browser_until:
+        if self.browser is not None and self._token is not None:
             self.browser_request_count += 1
-            return self.browser.get(self.base_url + path, sent)
-        return self.transport.get(self.base_url + path, sent)
-
-    def _current_token(self) -> CaptchaToken | None:
-        if self._token is None:
-            self._token = self.tokens.load()
-        if self._token is not None and not self._token.usable(self.clock()):
-            self._token = None
-        return self._token
+            return self.browser.get(self.base_url + path, {**headers, CAPTCHA_HEADER: self._token.value})
+        return self.transport.get(self.base_url + path, headers)
 
     def _answer_challenge(self, path: str, headers: dict[str, str], challenged: Response) -> Response:
-        """Solve once, retry with the token, then from the browser page; else the refusal stands."""
+        """Pass the captcha in the browser and send the request again from its page."""
         now = self.clock()
         if self.browser is None:
             return challenged
@@ -159,18 +143,7 @@ class SofascoreClient:  # pylint: disable=too-many-instance-attributes
             ) from exc
         self._solved_at = now
         self.solve_count += 1
-        self.tokens.save(self._token)
-        response = self._send(path, headers)
-        if not response.is_challenge or now < self._browser_until:
-            return response
-        self._browser_until = now + self.browser_first_s
-        try:
-            response = self._send(path, headers)
-        except Exception:  # pylint: disable=broad-except
-            response = challenged
-        if response.status in LIMIT_STATUSES:
-            self._browser_until = 0.0
-        return response
+        return self._send(path, headers)
 
     @staticmethod
     def _finish(path: str, response: Response, sent_etag: str | None) -> FetchResult:

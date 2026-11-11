@@ -15,8 +15,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
-from curl_cffi import CurlOpt, requests as curl_requests
-from curl_cffi.const import CurlIpResolve
+from curl_cffi import requests as curl_requests
 
 SITE = "https://www.sofascore.com"
 CAPTCHA_HEADER = "X-Captcha"
@@ -74,12 +73,7 @@ class Response:
 
 
 def _curl_session(profile: str) -> Any:
-    # IPv4 only: the captcha token carries the (IPv4) address it was solved from; on a dual-stack
-    # host curl would otherwise connect from a different address over IPv6.
-    return curl_requests.Session(
-        impersonate=profile,  # type: ignore[arg-type]
-        curl_options={CurlOpt.IPRESOLVE: CurlIpResolve.V4},
-    )
+    return curl_requests.Session(impersonate=profile)  # type: ignore[arg-type]
 
 
 class Transport(Protocol):
@@ -97,9 +91,8 @@ class CurlTransport:
     """curl_cffi with a desktop Chrome fingerprint, a cookie jar and a one-time warm-up.
 
     The first request of a session opens the home page like a person would, so the API calls
-    that follow carry the cookies the site sets there. The captcha token, when the client has
-    one, rides along both as ``X-Captcha`` (what the web app sends) and as the ``sofa_captcha``
-    cookie (what the edge reads on page loads).
+    that follow carry the cookies the site sets there. curl never carries a captcha token: a
+    token only works inside the browser that solved it.
     """
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -120,12 +113,9 @@ class CurlTransport:
         self.warmed_up = False
 
     def get(self, url: str, headers: Mapping[str, str]) -> Response:
-        """Send one API call with fetch() headers, the slot hash and the token, if any."""
+        """Send one API call with the web app's fetch() headers and slot hash."""
         if not self.warmed_up:
             self.warm_up()
-        token = headers.get(CAPTCHA_HEADER)
-        if token:
-            self.session.cookies.set(CAPTCHA_COOKIE, token, domain="www.sofascore.com", path="/")
         merged: dict[str, str | None] = {
             **API_HEADERS,
             "X-Requested-With": requested_with(self.clock()),
