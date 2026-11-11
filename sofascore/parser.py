@@ -14,7 +14,6 @@ from typing import Any
 # ``penalties`` is a shootout tally, which basketball doesn't have.
 PERIOD_KEYS = ("period1", "period2", "period3", "period4")
 FINISHED = "finished"
-OPEN_STATUS_TYPES = frozenset({"notstarted", "inprogress"})
 
 
 def _ts(value: int | None) -> datetime | None:
@@ -110,12 +109,6 @@ def parse_event(event: dict[str, Any]) -> dict[str, Any] | None:
         row[f"{side}_overtime"] = _int(score, "overtime")
         row[f"{side}_penalties"] = _int(score, "penalties")
     return row
-
-
-def parse_events(data: dict[str, Any]) -> list[dict[str, Any]]:
-    """An ``{"events": [...]}`` page -> rows, dropping events without a unique tournament."""
-    rows = (parse_event(event) for event in data.get("events", []))
-    return [row for row in rows if row is not None]
 
 
 def parse_team(data: dict[str, Any]) -> dict[str, Any]:

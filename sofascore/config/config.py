@@ -19,14 +19,20 @@ class Config:  # pylint: disable=invalid-name,too-many-instance-attributes
     )
     # Random pause between two Sofascore requests, seconds; one request at a time (AGENTS.md rule 4).
     SOFASCORE_PAUSE_MIN_S: float = field(
-        default_factory=lambda: float(os.environ.get("SOFASCORE_PAUSE_MIN_S", "4"))
+        default_factory=lambda: float(os.environ.get("SOFASCORE_PAUSE_MIN_S", "3"))
     )
     SOFASCORE_PAUSE_MAX_S: float = field(
-        default_factory=lambda: float(os.environ.get("SOFASCORE_PAUSE_MAX_S", "6"))
+        default_factory=lambda: float(os.environ.get("SOFASCORE_PAUSE_MAX_S", "5"))
     )
     # After a 403/429 nothing asks Sofascore for this many minutes (any run, cron or by hand).
     SOFASCORE_COOLDOWN_MIN: float = field(
         default_factory=lambda: float(os.environ.get("SOFASCORE_COOLDOWN_MIN", "60"))
     )
-    # Where the "blocked until" marker lives; relative to the repo root the runs start in.
+    # Where the "blocked until" marker and the browser profiles live; relative to the repo root the
+    # runs start in.
     SOFASCORE_STATE_DIR: str = field(default_factory=lambda: os.environ.get("SOFASCORE_STATE_DIR", "logs"))
+    # The browser that answers a captcha challenge: a Playwright channel ("chrome" = the installed
+    # Google Chrome, "chromium" = `patchright install chromium`). It always shows its window.
+    SOFASCORE_BROWSER_CHANNEL: str = field(
+        default_factory=lambda: os.environ.get("SOFASCORE_BROWSER_CHANNEL", "chrome")
+    )

@@ -6,11 +6,13 @@
     python -m sofascore.run work [--max-minutes 60]      # drain the queue only
     python -m sofascore.run reparse                      # rebuild typed tables from raw
     python -m sofascore.run status                       # queue + coverage summary
+    python -m sofascore.run captcha                      # pass the check in Chrome, fetch one page
 
 Every command takes ``--dry-run`` (plan and report; write and fetch nothing), ``--sport`` and
 ``--tid``. The rules (fetch once when done, re-check +6h/+36h/+7d, freeze) are in ARCHITECTURE.md.
 
-Exit codes: 0 done (or cooling down after a block), 2 Sofascore refused us and the run stopped.
+Exit codes: 0 done (or cooling down after a block), 2 Sofascore refused us and the run stopped,
+3 too many items failed in a row and the run stopped.
 """
 
 from __future__ import annotations
@@ -27,19 +29,24 @@ from pathlib import Path
 from typing import Any
 
 from sofascore import loader, planning, store
-from sofascore.client import SofascoreBlockedError, SofascoreClient, SofascoreHTTPError
+from sofascore.captcha import BrowserSession
+from sofascore.client import DEFAULT_BASE_URL, SofascoreBlockedError, SofascoreClient, SofascoreHTTPError
 from sofascore.config.config import Config
 from sofascore.config.logging import setup_logger
 from sofascore.config.sentry_config import sentry_report_error, setup_sentry
 from sofascore.database.connection import connect
 from sofascore.leagues import LEAGUES, SofascoreLeague
 from sofascore.sports import SPORT_CODES, get_sport
+from sofascore.transport import CAPTCHA_HEADER
 
 logger = setup_logger("sofascore")
 
 COLLECTOR_VERSION = "0.1.0"
 MAX_ATTEMPTS = 5
 EXIT_BLOCKED = 2
+EXIT_FAILING = 3
+# This many items failing one after another stops the run: something is wrong beyond one page.
+MAX_CONSECUTIVE_ERRORS = 20
 # A season is frozen once its newest game is this old and nothing is scheduled or live.
 SEASON_GRACE_DAYS = 14
 # The fast run looks at games that started at most this long ago; older ones are the daily's.
@@ -48,13 +55,17 @@ FAST_MAX_AGE_HOURS = 48
 GHOST_HOURS = 36
 # One collector at a time (cron or by hand), so Sofascore never sees two clients at once.
 LOCK_PATH = "/tmp/sofascore_run.lock"  # nosec B108 — a lock file, no data
-# Worker time budget per command, minutes. At 4-6 s a request a daily pass (a few hundred mostly
-# 304s) takes 25-50 minutes; a full backfill runs for days and can be resumed at any point.
+# Worker time budget per command, minutes. At 3-5 s a request a daily pass (a few hundred mostly
+# 304s) takes 20-40 minutes; a full backfill runs for days and can be resumed at any point.
 BUDGET_MINUTES = {"fast": 25.0, "daily": 90.0, "backfill": 4320.0, "work": 4320.0}
 # A backfill waits out a block (SOFASCORE_COOLDOWN_MIN) at most this often per run; the cron runs
 # stop at the first one.
 MAX_COOLDOWNS = {"backfill": 3, "work": 3}
 BLOCK_MARKER = "sofascore_blocked_until"
+BROWSER_PROFILES = "sofascore_browser_profiles"
+# How long `captcha` waits for the check to pass, and the page it then fetches.
+MANUAL_SOLVE_TIMEOUT_S = 300
+CHECK_PATH = "/unique-tournament/264/seasons"
 
 # A season is complete when it is not its tournament's newest season, nothing in it is scheduled
 # or live, its newest game is past the grace period, and its schedule page 404s.
@@ -259,6 +270,10 @@ def process(cur: Any, client: SofascoreClient, item: store.Claimed, stats: WorkS
         store.mark_parsed(cur, item)
 
 
+class CollectorFailingError(RuntimeError):
+    """Too many items failed in a row; the run stops instead of burning through the queue."""
+
+
 @dataclass
 class BlockPolicy:
     """What a run does when Sofascore refuses a request (403/429).
@@ -309,7 +324,7 @@ def work(  # pylint: disable=too-many-arguments,too-many-positional-arguments,to
     conn.commit()
     if stuck:
         logger.info("%d stuck in_progress item(s) back to pending", stuck)
-    done = 0
+    done, consecutive_errors = 0, 0
     while time.monotonic() < deadline and (max_items is None or done < max_items):
         with conn.cursor() as cur:
             item = store.claim(cur, sports, max_priority)
@@ -319,7 +334,7 @@ def work(  # pylint: disable=too-many-arguments,too-many-positional-arguments,to
             try:
                 process(cur, client, item, stats)
                 conn.commit()
-                just_cooled = False
+                just_cooled, consecutive_errors = False, 0
             except SofascoreBlockedError as exc:
                 conn.rollback()
                 with conn.cursor() as cur2:
@@ -344,8 +359,15 @@ def work(  # pylint: disable=too-many-arguments,too-many-positional-arguments,to
                 stats.counts["errors"] += 1
                 log = logger.error if status == "failed" else logger.warning
                 log("%s %s: %s (%s)", item.entity_type, item.entity_key, exc, status)
+                consecutive_errors += 1
+                if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                    raise CollectorFailingError(
+                        f"{consecutive_errors} items failed in a row; last: {type(exc).__name__}: {exc}"
+                    ) from exc
         done += 1
     stats.counts["requests"] = client.request_count
+    stats.counts["captcha_solves"] = client.solve_count
+    stats.counts["browser_requests"] = client.browser_request_count
     return stats
 
 
@@ -400,12 +422,70 @@ def _plan(conn: Any, command: str, leagues: list[SofascoreLeague], sports: list[
             _seed(conn, plan_fast(cur, leagues, sports), dry_run)
 
 
+def _collect(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    conn: Any,
+    client: SofascoreClient,
+    sports: Sequence[str],
+    max_minutes: float,
+    max_items: int | None,
+    max_priority: int | None,
+    policy: BlockPolicy,
+) -> WorkStats:
+    """Run the worker and always close the client (and its browser) afterwards."""
+    try:
+        return work(conn, client, sports, max_minutes, max_items, max_priority, policy)
+    finally:
+        client.close()
+
+
+def build_client(config: Config, state_dir: Path) -> SofascoreClient:
+    """The collector's client: curl first, the browser for challenges, the token kept on disk."""
+    browser = BrowserSession(
+        state_dir / BROWSER_PROFILES,
+        channel=config.SOFASCORE_BROWSER_CHANNEL,
+    )
+    return SofascoreClient(
+        browser=browser,
+        pause_seconds=(config.SOFASCORE_PAUSE_MIN_S, config.SOFASCORE_PAUSE_MAX_S),
+    )
+
+
+def check_by_hand(config: Config, state_dir: Path, dry_run: bool) -> int:
+    """Open the captcha page in a Chrome window, wait for the check to pass, then fetch one page
+    from it: shows whether the browser gets data from this machine.
+    """
+    if dry_run:
+        return 0
+    browser = BrowserSession(
+        state_dir / BROWSER_PROFILES,
+        channel=config.SOFASCORE_BROWSER_CHANNEL,
+        solve_timeout_s=MANUAL_SOLVE_TIMEOUT_S,
+    )
+    try:
+        token = browser.solve()
+        logger.info("captcha passed; token valid until %s", _utc(token.expires_at))
+        response = browser.get(f"{DEFAULT_BASE_URL}{CHECK_PATH}", {CAPTCHA_HEADER: token.value})
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.error("captcha check failed: %s", exc)
+        return EXIT_BLOCKED
+    finally:
+        browser.close()
+    logger.info("%s from the solved browser: HTTP %d", CHECK_PATH, response.status)
+    return 0 if response.status == 200 else EXIT_BLOCKED
+
+
+def _utc(epoch: float) -> str:
+    return datetime.fromtimestamp(epoch, UTC).isoformat(timespec="seconds")
+
+
 def main(  # pylint: disable=too-many-return-statements,too-many-locals
     argv: Sequence[str] | None = None,
 ) -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("command", choices=("backfill", "daily", "fast", "work", "reparse", "status"))
+    parser.add_argument(
+        "command", choices=("backfill", "daily", "fast", "work", "reparse", "status", "captcha")
+    )
     parser.add_argument("--sport", choices=SPORT_CODES, action="append", help="default: all")
     parser.add_argument("--tid", type=int, action="append", help="limit to these tournaments")
     parser.add_argument("--max-minutes", type=float, default=None, help="worker time budget")
@@ -416,6 +496,9 @@ def main(  # pylint: disable=too-many-return-statements,too-many-locals
     logger.setLevel(config.LOGLEVEL.upper())
     setup_sentry()
 
+    state_dir = Path(config.SOFASCORE_STATE_DIR)
+    if args.command == "captcha":
+        return check_by_hand(config, state_dir, args.dry_run)
     sports = sorted(set(args.sport or [lg.sport.code for lg in LEAGUES]))
     leagues = _leagues(sports, args.tid)
     conn = connect(config)
@@ -441,7 +524,7 @@ def main(  # pylint: disable=too-many-return-statements,too-many-locals
         policy = BlockPolicy(
             cooldown_minutes=config.SOFASCORE_COOLDOWN_MIN,
             max_cooldowns=MAX_COOLDOWNS.get(args.command, 0),
-            marker=Path(config.SOFASCORE_STATE_DIR) / BLOCK_MARKER,
+            marker=state_dir / BLOCK_MARKER,
         )
         until = policy.blocked_until()
         if until is not None:
@@ -455,15 +538,9 @@ def main(  # pylint: disable=too-many-return-statements,too-many-locals
         # The fast run does only its own games (and the teams/stats they bring); the backfill's
         # items wait for a daily or backfill run.
         max_priority = planning.PRIORITY_TEAM if args.command == "fast" else None
-        client = SofascoreClient(pause_seconds=(config.SOFASCORE_PAUSE_MIN_S, config.SOFASCORE_PAUSE_MAX_S))
-        stats = work(
-            conn,
-            client,
-            sports,
-            args.max_minutes or BUDGET_MINUTES[args.command],
-            args.max_items,
-            max_priority,
-            policy,
+        budget = args.max_minutes or BUDGET_MINUTES[args.command]
+        stats = _collect(
+            conn, build_client(config, state_dir), sports, budget, args.max_items, max_priority, policy
         )
         logger.info("%s: %s", args.command, stats.summary())
         return 0
@@ -471,6 +548,10 @@ def main(  # pylint: disable=too-many-return-statements,too-many-locals
         logger.error("Sofascore is blocking the client: %s", exc)
         sentry_report_error(exc, extra={"job": "sofascore", "command": args.command})
         return EXIT_BLOCKED
+    except CollectorFailingError as exc:
+        logger.error("Sofascore run stopped: %s", exc)
+        sentry_report_error(exc, extra={"job": "sofascore", "command": args.command})
+        return EXIT_FAILING
     finally:
         conn.close()
 

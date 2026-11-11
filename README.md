@@ -19,8 +19,10 @@ planners (backfill / daily / fast) ──▶ sofascore_queue ──▶ worker �
 
 * Every API path is a queue row with a status; every payload is kept raw; the tables are rebuilt
   from raw, so a parser fix is a `reparse`, not a re-fetch.
-* One request at a time, 4–6 s apart, with ETags (an unchanged page is a 0-byte 304). A 403/429
-  (Sofascore's rate limit) means an hour without any request.
+* One request at a time, 3–5 s apart, with ETags (an unchanged page is a 0-byte 304), through
+  `curl_cffi` with a Chrome fingerprint. On a captcha challenge a real Chrome (patchright) passes it
+  and sends the rest of the run; any other 403/429 (Sofascore's rate limit) means an hour without
+  any request.
 * A finished game is fetched once, re-checked after 6 h, 36 h and 7 days, then frozen.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the tables, entity types and runs.
@@ -45,6 +47,7 @@ poetry run python -m sofascore.runners.apply_migration migrations/001_sofascore_
 poetry run python -m sofascore.run backfill --dry-run   # what would be queued
 poetry run python -m sofascore.run backfill             # every season of every league
 poetry run python -m sofascore.run status               # queue counts and coverage
+poetry run python -m sofascore.run captcha              # pass the check in Chrome, fetch one page
 poetry run pytest                                       # needs local Postgres binaries
 ```
 
