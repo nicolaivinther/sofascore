@@ -15,7 +15,8 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
-from curl_cffi import requests as curl_requests
+from curl_cffi import CurlOpt, requests as curl_requests
+from curl_cffi.const import CurlIpResolve
 
 SITE = "https://www.sofascore.com"
 CAPTCHA_HEADER = "X-Captcha"
@@ -72,6 +73,15 @@ class Response:
         return bool(reason == "challenge")
 
 
+def _curl_session(profile: str) -> Any:
+    # IPv4 only: the captcha token carries the (IPv4) address it was solved from; on a dual-stack
+    # host curl would otherwise connect from a different address over IPv6.
+    return curl_requests.Session(
+        impersonate=profile,  # type: ignore[arg-type]
+        curl_options={CurlOpt.IPRESOLVE: CurlIpResolve.V4},
+    )
+
+
 class Transport(Protocol):
     """Sends one GET."""
 
@@ -104,11 +114,7 @@ class CurlTransport:
     ) -> None:
         self.clock = clock
         self.profile = choice(profiles)
-        self.session = (
-            session
-            if session is not None
-            else curl_requests.Session(impersonate=self.profile)  # type: ignore[arg-type]
-        )
+        self.session = session if session is not None else _curl_session(self.profile)
         self.sleep = sleep
         self.warm_up_pause_s = warm_up_pause_s
         self.warmed_up = False
