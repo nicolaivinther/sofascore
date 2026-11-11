@@ -1,6 +1,6 @@
 """Unit tests for sofascore.transport and the token side of sofascore.captcha (no network)."""
 
-# pylint: disable=missing-function-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring
 
 import base64
 import json

@@ -69,7 +69,7 @@ class Response:
             reason = self.json().get("error", {}).get("reason")
         except (ValueError, AttributeError):
             return False
-        return reason == "challenge"
+        return bool(reason == "challenge")
 
 
 class Transport(Protocol):
@@ -92,7 +92,7 @@ class CurlTransport:
     cookie (what the edge reads on page loads).
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         session: Any = None,
         *,
@@ -104,12 +104,17 @@ class CurlTransport:
     ) -> None:
         self.clock = clock
         self.profile = choice(profiles)
-        self.session = session if session is not None else curl_requests.Session(impersonate=self.profile)
+        self.session = (
+            session
+            if session is not None
+            else curl_requests.Session(impersonate=self.profile)  # type: ignore[arg-type]
+        )
         self.sleep = sleep
         self.warm_up_pause_s = warm_up_pause_s
         self.warmed_up = False
 
     def get(self, url: str, headers: Mapping[str, str]) -> Response:
+        """Send one API call with fetch() headers, the slot hash and the token, if any."""
         if not self.warmed_up:
             self.warm_up()
         token = headers.get(CAPTCHA_HEADER)
@@ -133,4 +138,5 @@ class CurlTransport:
         self.sleep(random.uniform(*self.warm_up_pause_s))  # nosec B311 — pacing, not crypto
 
     def close(self) -> None:
+        """Close the curl session."""
         self.session.close()

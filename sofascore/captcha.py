@@ -86,7 +86,7 @@ class TokenStore:
         self.path.write_text(token.value, encoding="utf-8")
 
 
-class BrowserSession:
+class BrowserSession:  # pylint: disable=too-many-instance-attributes
     """A real Chrome with a persistent profile, launched on first use and kept until closed."""
 
     def __init__(  # pylint: disable=too-many-arguments
