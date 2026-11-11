@@ -443,7 +443,6 @@ def build_client(config: Config, state_dir: Path) -> SofascoreClient:
     browser = BrowserSession(
         state_dir / BROWSER_PROFILES,
         channel=config.SOFASCORE_BROWSER_CHANNEL,
-        headless=config.SOFASCORE_BROWSER_HEADLESS,
     )
     return SofascoreClient(
         browser=browser,
@@ -460,7 +459,6 @@ def check_by_hand(config: Config, state_dir: Path, dry_run: bool) -> int:
     browser = BrowserSession(
         state_dir / BROWSER_PROFILES,
         channel=config.SOFASCORE_BROWSER_CHANNEL,
-        headless=False,
         auto_click=False,
         solve_timeout_s=MANUAL_SOLVE_TIMEOUT_S,
     )

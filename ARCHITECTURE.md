@@ -15,13 +15,15 @@
   challenged again. So it is never stored.
 - `captcha.BrowserSession` passes the challenge in the installed Google Chrome through patchright (a
   Playwright that hides automation; a plain automated browser fails Turnstile with error 600010),
-  with a fresh profile per launch under `logs/sofascore_browser_profiles/` (deleted on close).
+  with a fresh profile per launch under `logs/sofascore_browser_profiles/` (deleted on close). A
+  visible Chrome window passes Turnstile without a click; headless Chrome does not. The browser is
+  never headless, so the machine needs a logged-in desktop session.
 - **On a challenge** the client has the browser solve (at most once per 10 minutes) and from then on
   sends every request of the run as `fetch()` from that page, still paced. The token lasts an hour;
   when it expires mid-run the same browser solves again. A challenge right after a solve, or a
   failed solve, is a refusal like any other. `python -m sofascore.run captcha` opens a visible
   Chrome window for a person to pass by hand (no auto-click) and fetches one page from it, to
-  check this machine; `SOFASCORE_BROWSER_HEADLESS=0` makes the runs show their window.
+  check this machine.
 - **Rate limit:** Sofascore answered 403 after about 1,500 requests at 2.7 a second, and after about
   2,150 at one per ~3.1 s; the second block still held after an hour (2026-11-10). At one per ~4.1 s
   it took 3,000 without one. So the client pauses a random 4–6 s between requests and never

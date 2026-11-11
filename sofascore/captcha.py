@@ -60,7 +60,9 @@ class CaptchaToken:
 
 
 class BrowserSession:  # pylint: disable=too-many-instance-attributes
-    """A real Chrome with a fresh profile, launched on first use and kept until closed.
+    """A visible Chrome with a fresh profile, launched on first use and kept until closed.
+
+    Never headless: Turnstile passes a visible Chrome without a click, not a headless one.
 
     Every launch gets a new, empty profile under ``profile_root`` (deleted on close), so nothing
     from an earlier, refused session carries over. A token works only inside the session that
@@ -72,7 +74,6 @@ class BrowserSession:  # pylint: disable=too-many-instance-attributes
         profile_root: Path,
         *,
         channel: str = "chrome",
-        headless: bool = True,
         auto_click: bool = True,
         solve_timeout_s: float = SOLVE_TIMEOUT_S,
         clock: Callable[[], float] = time.monotonic,
@@ -81,7 +82,6 @@ class BrowserSession:  # pylint: disable=too-many-instance-attributes
         self.profile_root = profile_root
         self._profile_dir: Path | None = None
         self.channel = channel
-        self.headless = headless
         self.auto_click = auto_click
         self.solve_timeout_s = solve_timeout_s
         self.clock = clock
@@ -132,7 +132,7 @@ class BrowserSession:  # pylint: disable=too-many-instance-attributes
             self._profile_dir = Path(tempfile.mkdtemp(prefix="profile-", dir=self.profile_root))
             self._playwright = sync_playwright().start()
             self._context = self._playwright.chromium.launch_persistent_context(
-                str(self._profile_dir), channel=self.channel, headless=self.headless, no_viewport=True
+                str(self._profile_dir), channel=self.channel, headless=False, no_viewport=True
             )
             pages = self._context.pages
             self._page = pages[0] if pages else self._context.new_page()
