@@ -1,6 +1,6 @@
 """Polite single-threaded client for Sofascore's private JSON API.
 
-- one request at a time, with a random 4-6 s pause before every call after the first (AGENTS.md
+- one request at a time, with a random 3-5 s pause before every call after the first (AGENTS.md
   rule 4), whichever transport sends it;
 - conditional requests: the caller passes the stored ETag, an unchanged resource comes back as a
   0-byte 304;
@@ -26,7 +26,7 @@ from sofascore.captcha import BrowserSession, CaptchaToken
 from sofascore.transport import CAPTCHA_HEADER, CurlTransport, Response, Transport
 
 DEFAULT_BASE_URL = "https://www.sofascore.com/api/v1"
-DEFAULT_PAUSE_SECONDS = (4.0, 6.0)
+DEFAULT_PAUSE_SECONDS = (3.0, 5.0)
 RETRY_STATUSES = frozenset({500, 502, 503, 504})
 LIMIT_STATUSES = frozenset({403, 429})
 # A second challenge this soon after a solve means the token is not what is missing. Longer

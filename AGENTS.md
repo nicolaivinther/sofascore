@@ -12,7 +12,7 @@ only imports this file.
    Migrations are applied by hand, with approval.
 3. **Never commit to `main` and never merge PRs.** One branch (and worktree) per `BAS-<n>` ticket;
    the user merges.
-4. **Collection pacing is fixed:** one request at a time with a random 4–6 s pause between calls
+4. **Collection pacing is fixed:** one request at a time with a random 3–5 s pause between calls
    (`SOFASCORE_PAUSE_MIN_S`/`MAX_S`), whichever transport (curl or browser) sends it; we must not
    strain Sofascore's API. A captcha challenge (403 `reason: challenge`) is passed in the browser
    (at most one solve per 10 minutes), which then sends the rest of the run. Any other 403, a 429,
