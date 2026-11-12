@@ -105,7 +105,7 @@ def test_refresh_steps_then_freeze():
 
 
 def test_league_list():
-    assert len(LEAGUES) == 57 and len(BY_TID) == 57
+    assert len(LEAGUES) == 58 and len(BY_TID) == 58
     assert {lg.sport for lg in LEAGUES} == {BASKETBALL}
     assert all(lg.sport.sofascore_sport for lg in LEAGUES)
     assert 28754 not in BY_TID and BY_TID[14251].canonical_league_id == 1143

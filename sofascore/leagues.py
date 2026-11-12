@@ -1,4 +1,5 @@
-"""The Sofascore tournaments we collect (BAS-227): AO-priced, betsapi-primary canonical leagues.
+"""The Sofascore tournaments we collect (BAS-227): AO-priced, betsapi-primary canonical leagues, plus
+Pro B Germany, which no other source serves any more.
 
 Each entry is a Sofascore unique tournament id, its sport and the canonical league it covers. The
 canonical id is a pointer for the later mapping (BAS-350); the collector writes nothing outside the
@@ -78,6 +79,7 @@ LEAGUES: tuple[SofascoreLeague, ...] = (
     SofascoreLeague(23647, BASKETBALL, 1073, "Paulista, 1ª Divisão"),
     SofascoreLeague(30548, BASKETBALL, 1513, "2. ZLS, Women"),
     SofascoreLeague(30720, BASKETBALL, 1264, "Super Cup"),
+    SofascoreLeague(28273, BASKETBALL, 488, "Pro B"),
 )
 
 BY_TID: dict[int, SofascoreLeague] = {league.tid: league for league in LEAGUES}
