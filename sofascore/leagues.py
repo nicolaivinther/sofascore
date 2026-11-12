@@ -83,7 +83,7 @@ LEAGUES: tuple[SofascoreLeague, ...] = (
     SofascoreLeague(28273, BASKETBALL, 488, "Pro B"),
     SofascoreLeague(29729, BASKETBALL, 445, "WBBL, Women"),
     # Leagues where Sofascore has player box scores (mostly from 2023/24) and our other stats
-    # sources have none or stopped. NCAA last: it is by far the largest.
+    # sources have none or stopped. NCAA is left out: ~12,000 games a season would dominate the queue.
     SofascoreLeague(1580, BASKETBALL, 606, "NBA G League"),
     SofascoreLeague(23937, BASKETBALL, 441, "Philippines MPBL"),
     SofascoreLeague(11499, BASKETBALL, 475, "Israeli National League Basketball"),
@@ -133,8 +133,6 @@ LEAGUES: tuple[SofascoreLeague, ...] = (
     SofascoreLeague(18404, BASKETBALL, 512, "NBL1 Women, East"),
     SofascoreLeague(18552, BASKETBALL, 512, "NBL 1, Wildcard, Women"),
     SofascoreLeague(13488, BASKETBALL, 512, "NBL1, Women"),
-    SofascoreLeague(33651, BASKETBALL, 430, "NCAA Men's Division I"),
-    SofascoreLeague(33655, BASKETBALL, 808, "NCAA Women's Division I"),
 )
 
 BY_TID: dict[int, SofascoreLeague] = {league.tid: league for league in LEAGUES}
