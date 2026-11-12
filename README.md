@@ -5,7 +5,7 @@ Flashscore and Basketball API don't cover: tournaments, seasons, teams, players,
 the full published schedule), team and player match stats, and standings. Stored in the
 `basketball_stats` Postgres DB in `sofascore_*` tables; `realgm_db` maps them onto canonical later.
 
-The tournaments collected are in [`sofascore/leagues.py`](sofascore/leagues.py) (107 basketball leagues
+The tournaments collected are in [`sofascore/leagues.py`](sofascore/leagues.py) (105 basketball leagues
 today; the list and how it was chosen: BAS-227).
 
 ## How it works

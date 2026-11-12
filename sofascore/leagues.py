@@ -2,6 +2,8 @@
 Pro B Germany and the Baltic women's league, which no other source serves any more, plus the leagues
 where Sofascore has player box scores and RealGM, Flashscore and Basketball API have no stats.
 
+Club competitions only: no national-team contests and no 3x3.
+
 Each entry is a Sofascore unique tournament id, its sport and the canonical league it covers. The
 canonical id is a pointer for the later mapping (BAS-350); the collector writes nothing outside the
 ``sofascore_*`` tables. Add a league here and the next backfill or daily run picks it up.
@@ -55,7 +57,6 @@ LEAGUES: tuple[SofascoreLeague, ...] = (
     SofascoreLeague(37520, BASKETBALL, 1135, "UAAP, Basketball"),
     SofascoreLeague(27527, BASKETBALL, 1037, "Rwanda Basketball League Women"),
     SofascoreLeague(25751, BASKETBALL, 1051, "LSB"),
-    SofascoreLeague(22861, BASKETBALL, 1094, "William Jones Cup"),
     SofascoreLeague(24922, BASKETBALL, 1185, "A league"),
     SofascoreLeague(25532, BASKETBALL, 1128, "Liga Ouro"),
     SofascoreLeague(14574, BASKETBALL, 1022, "Tunisia National A League"),
@@ -76,7 +77,6 @@ LEAGUES: tuple[SofascoreLeague, ...] = (
     SofascoreLeague(9466, BASKETBALL, 1140, "Supercoppa LNP, Serie A2"),
     SofascoreLeague(37127, BASKETBALL, 1714, "Euroleague SuperCup"),
     SofascoreLeague(24273, BASKETBALL, 1262, "Bulgarian Women's Basketball Championship"),
-    SofascoreLeague(39742, BASKETBALL, 1654, "FIBA Women's Asia Cup 2027 Div B SEABA Qualifiers"),
     SofascoreLeague(23647, BASKETBALL, 1073, "Paulista, 1ª Divisão"),
     SofascoreLeague(30548, BASKETBALL, 1513, "2. ZLS, Women"),
     SofascoreLeague(30720, BASKETBALL, 1264, "Super Cup"),
