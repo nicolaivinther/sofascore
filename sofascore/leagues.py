@@ -1,5 +1,6 @@
 """The Sofascore tournaments we collect (BAS-227): AO-priced, betsapi-primary canonical leagues, plus
-Pro B Germany and the Baltic women's league, which no other source serves any more.
+Pro B Germany and the Baltic women's league, which no other source serves any more, plus the leagues
+where Sofascore has player box scores and RealGM, Flashscore and Basketball API have no stats.
 
 Each entry is a Sofascore unique tournament id, its sport and the canonical league it covers. The
 canonical id is a pointer for the later mapping (BAS-350); the collector writes nothing outside the
@@ -81,6 +82,59 @@ LEAGUES: tuple[SofascoreLeague, ...] = (
     SofascoreLeague(30720, BASKETBALL, 1264, "Super Cup"),
     SofascoreLeague(28273, BASKETBALL, 488, "Pro B"),
     SofascoreLeague(29729, BASKETBALL, 445, "WBBL, Women"),
+    # Leagues where Sofascore has player box scores (mostly from 2023/24) and our other stats
+    # sources have none or stopped. NCAA last: it is by far the largest.
+    SofascoreLeague(1580, BASKETBALL, 606, "NBA G League"),
+    SofascoreLeague(23937, BASKETBALL, 441, "Philippines MPBL"),
+    SofascoreLeague(11499, BASKETBALL, 475, "Israeli National League Basketball"),
+    SofascoreLeague(29552, BASKETBALL, 500, "Super League"),
+    SofascoreLeague(24105, BASKETBALL, 1425, "Latvia NBL"),
+    SofascoreLeague(20078, BASKETBALL, 486, "Israeli Women Basketball Premier League"),
+    SofascoreLeague(251, BASKETBALL, 793, "1. DBBL"),
+    SofascoreLeague(29888, BASKETBALL, 794, "Liga Femenina"),
+    SofascoreLeague(1538, BASKETBALL, 831, "Liga Femenina"),
+    SofascoreLeague(21128, BASKETBALL, 588, "Finland Division 1A Women"),
+    SofascoreLeague(11511, BASKETBALL, 665, "Iranian Basketball Super League"),
+    SofascoreLeague(24412, BASKETBALL, 830, "Zain Basketball League"),
+    SofascoreLeague(29868, BASKETBALL, 499, "National League"),
+    SofascoreLeague(14089, BASKETBALL, 846, "Dominican Republic LNB"),
+    SofascoreLeague(13906, BASKETBALL, 653, "Libobasquet"),
+    SofascoreLeague(27960, BASKETBALL, 584, "National Basketball League"),
+    SofascoreLeague(23944, BASKETBALL, 519, "Chinese Taipei TPBL"),
+    SofascoreLeague(18639, BASKETBALL, 838, "Chinese Taipei P League"),
+    SofascoreLeague(25873, BASKETBALL, 797, "LNB 2"),
+    SofascoreLeague(29539, BASKETBALL, 651, "BLNO, Women"),
+    SofascoreLeague(3074, BASKETBALL, 759, "Slovenia Cup"),
+    SofascoreLeague(29358, BASKETBALL, 920, "Copa Espana"),
+    SofascoreLeague(9543, BASKETBALL, 834, "Greek Women's Basketball League"),
+    SofascoreLeague(24261, BASKETBALL, 1250, "Azerbaijan Basketball League"),
+    SofascoreLeague(25147, BASKETBALL, 1069, "The League"),
+    SofascoreLeague(31336, BASKETBALL, 941, "A1"),
+    SofascoreLeague(26243, BASKETBALL, 1019, "Premier League"),
+    SofascoreLeague(22877, BASKETBALL, 1343, "Liga Nacional Masculina"),
+    SofascoreLeague(30090, BASKETBALL, 1090, "Women's Basketball Division A"),
+    SofascoreLeague(23792, BASKETBALL, 1178, "Bulgarian BBL Division A"),
+    SofascoreLeague(27041, BASKETBALL, 1591, "DIV I Women"),
+    SofascoreLeague(30549, BASKETBALL, 1439, "I A ZCKL, Women"),
+    # NBL1 Australia: one Sofascore tournament per conference, plus the national finals.
+    SofascoreLeague(16739, BASKETBALL, 526, "NBL1, Central"),
+    SofascoreLeague(16740, BASKETBALL, 526, "NBL1, West"),
+    SofascoreLeague(16818, BASKETBALL, 526, "NBL1, North"),
+    SofascoreLeague(16776, BASKETBALL, 526, "NBL1, South"),
+    SofascoreLeague(18599, BASKETBALL, 526, "NBL1, East"),
+    SofascoreLeague(18403, BASKETBALL, 526, "NBL1, East"),
+    SofascoreLeague(18601, BASKETBALL, 526, "NBL1, Wildcard"),
+    SofascoreLeague(13487, BASKETBALL, 526, "NBL1"),
+    SofascoreLeague(16741, BASKETBALL, 512, "NBL1 Women, Central"),
+    SofascoreLeague(16742, BASKETBALL, 512, "NBL1 Women, West"),
+    SofascoreLeague(16819, BASKETBALL, 512, "NBL1 Women, North"),
+    SofascoreLeague(16821, BASKETBALL, 512, "NBL1 Women, South"),
+    SofascoreLeague(18600, BASKETBALL, 512, "NBL1 Women, East"),
+    SofascoreLeague(18404, BASKETBALL, 512, "NBL1 Women, East"),
+    SofascoreLeague(18552, BASKETBALL, 512, "NBL 1, Wildcard, Women"),
+    SofascoreLeague(13488, BASKETBALL, 512, "NBL1, Women"),
+    SofascoreLeague(33651, BASKETBALL, 430, "NCAA Men's Division I"),
+    SofascoreLeague(33655, BASKETBALL, 808, "NCAA Women's Division I"),
 )
 
 BY_TID: dict[int, SofascoreLeague] = {league.tid: league for league in LEAGUES}

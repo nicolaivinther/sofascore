@@ -116,10 +116,12 @@ and `--max-minutes`/`--max-items`. One run at a time (`/tmp/sofascore_run.lock`)
 
 ## Cost
 
-About 850 requests an hour (a 3–5 s pause plus the response). Full history of the 57 leagues:
-about 3,000 requests for tournaments, seasons, game pages and teams, plus about 2 per finished
-game for stats and lineups (up to ~50,000), plus 4 per season for standings and rounds: roughly
-2–3 days, once, resumable. A daily pass is a few hundred mostly-304 requests (20–40 minutes); a
+About 850 requests an hour (a 3–5 s pause plus the response). History costs about 2 requests per
+finished game (stats and lineups) plus a few per season (game pages, standings, rounds). The first
+59 leagues took ~50,000 requests (2–3 days). The 50 box-score leagues added later (NBL1, G League,
+NCAA and others) have about 19,000 games a season from 2024 (NCAA 12,000), so their full history is
+some 200,000 requests: about 10 days of a continuous `backfill`, or months if only the 90-minute
+daily passes work it off. Resumable either way. A daily pass is a few hundred mostly-304 requests (20–40 minutes); a
 fast run a few to ~30.
 
 ## Status queries
