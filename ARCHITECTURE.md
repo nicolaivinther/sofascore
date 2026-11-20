@@ -100,7 +100,7 @@ and `--max-minutes`/`--max-items`. One run at a time (`/tmp/sofascore_run.lock`)
 
 - **Backfill**: tournament + season list per league; discovery queues every season's pages,
   standings, rounds, games' stats and lineups, and teams.
-- **Daily pass** (`sofascore-daily`, 04:40 and 16:40): freezes finished seasons, then re-queues
+- **Daily pass** (`sofascore-daily`, 04:50 and 16:50, clear of the :35 fast run): freezes finished seasons, then re-queues
   every league's tournament and season list and, per open season, results page 0, schedule page
   0 (the whole schedule is re-walked: new rounds, re-dates, postponements, cancellations), the
   standings and the rounds. Unchanged pages are 304s. This is the only run that fetches the
