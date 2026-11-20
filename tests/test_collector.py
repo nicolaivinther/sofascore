@@ -9,6 +9,7 @@ saved payloads in ``tests/fixtures`` and 404s everything else.
 from __future__ import annotations
 
 import copy
+import fcntl
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -470,3 +471,80 @@ def test_a_new_standings_table_replaces_the_old_one(conn):
     standings["standings"][1]["rows"].pop()  # a team leaves group B
     _daily(conn, client, (SERIE_B,))
     assert _q(conn, "SELECT COUNT(*) FROM sofascore_standings") == [(3,)]
+
+
+def _queued(conn):
+    return sorted(_q(conn, "SELECT entity_type, priority FROM sofascore_queue"))
+
+
+def _clock(tmp_path, hours_ago=None):
+    clock = run.DailyClock(tmp_path / "daily_planned_at")
+    if hours_ago is not None:
+        clock.record(datetime.now(UTC) - timedelta(hours=hours_ago))
+    return clock
+
+
+def test_the_daily_clock_is_overdue_without_a_marker_or_after_13_hours(tmp_path):
+    assert _clock(tmp_path / "a").is_overdue()
+    assert not _clock(tmp_path / "b", hours_ago=12.1).is_overdue()
+    assert _clock(tmp_path / "c", hours_ago=13.5).is_overdue()
+
+
+def test_a_daily_plan_records_the_clock_but_not_in_a_dry_run(conn, tmp_path):
+    clock = _clock(tmp_path)
+    run.plan(conn, "daily", [ACB], SPORTS, dry_run=True, clock=clock)
+    assert clock.last_planned() is None and _queued(conn) == []
+    run.plan(conn, "daily", [ACB], SPORTS, dry_run=False, clock=clock)
+    last = clock.last_planned()
+    assert last is not None and last > datetime.now(UTC) - timedelta(minutes=1)
+    daily = planning.PRIORITY_DAILY
+    assert _queued(conn) == [("seasons", daily), ("tournament", daily)]
+
+
+def test_a_fast_run_catches_up_a_skipped_daily_plan(conn, tmp_path):
+    clock = _clock(tmp_path, hours_ago=20)
+    run.plan(conn, "fast", [ACB], SPORTS, dry_run=False, clock=clock)
+    daily = planning.PRIORITY_DAILY
+    assert _queued(conn) == [("seasons", daily), ("tournament", daily)]
+    assert not clock.is_overdue()  # the next fast run does not plan it again
+
+
+def test_a_fast_run_leaves_the_daily_alone_when_it_is_on_time(conn, tmp_path):
+    run.plan(conn, "fast", [ACB], SPORTS, dry_run=False, clock=_clock(tmp_path, hours_ago=2))
+    run.plan(conn, "fast", [ACB], SPORTS, dry_run=False, clock=None)  # a --tid/--sport run
+    assert _queued(conn) == []
+
+
+def test_the_daily_items_a_fast_run_queues_are_within_its_priority_limit():
+    assert planning.PRIORITY_DAILY <= planning.PRIORITY_TEAM  # the fast run's max_priority
+
+
+class _NoConn:
+    def close(self):
+        pass
+
+
+@pytest.fixture(name="cli")
+def cli_fixture(monkeypatch, tmp_path):
+    """``run.main`` with no database, Sentry or Sofascore: only the checks before planning run."""
+    monkeypatch.setenv("SOFASCORE_STATE_DIR", str(tmp_path / "state"))
+    monkeypatch.setattr(run, "LOCK_PATH", str(tmp_path / "run.lock"))
+    monkeypatch.setattr(run, "connect", lambda config: _NoConn())
+    monkeypatch.setattr(run, "setup_sentry", lambda: None)
+    return tmp_path
+
+
+def test_a_daily_that_finds_the_lock_held_exits_skipped_and_a_fast_run_exits_0(cli):
+    with open(cli / "run.lock", "w", encoding="utf-8") as held:
+        fcntl.flock(held, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        assert run.main(["daily"]) == run.EXIT_SKIPPED
+        assert run.main(["fast"]) == 0
+
+
+def test_a_daily_in_a_cooldown_exits_skipped_and_a_fast_run_exits_0(cli):
+    marker = cli / "state" / run.BLOCK_MARKER
+    marker.parent.mkdir()
+    marker.write_text((datetime.now(UTC) + timedelta(minutes=30)).isoformat(), encoding="utf-8")
+    assert run.main(["daily"]) == run.EXIT_SKIPPED
+    assert run.main(["fast"]) == 0
+    assert not (cli / "state" / run.DAILY_MARKER).exists()

@@ -15,6 +15,10 @@ After a crontab edit, sync the schedule into `cron_jobs` from realgm_db:
 
 Logs: `logs/sofascore_daily.log`, `logs/sofascore_fast.log`.
 
+A daily that finds the lock held (a fast run is still going) or a cooldown active exits 4, so it
+shows as failed on the Cron Jobs page. Nothing is lost: the next fast run sees that no daily plan
+ran in 13 hours (`logs/sofascore_daily_planned_at`) and plans it too.
+
 ## Deploy
 
 A merge to `main` runs `.github/workflows/deploy.yml` on the repo's own self-hosted runner on the
