@@ -5,8 +5,8 @@ and `.development.env` itself. They are wrapped in realgm_db's `run_job.sh`, whi
 run in `cron_job_runs` (the Cron Jobs dashboard page).
 
 ```cron
-# Sofascore daily pass (04:40, 16:40) and fast run (every 30 min); the CLI's lock keeps them apart
-40 4,16 * * * /Users/nicolaitanghoj/dev/realgm_db/local_cronjobs/run_job.sh sofascore-daily /Users/nicolaitanghoj/dev/sofascore/local_cronjobs/run_sofascore_daily.sh
+# Sofascore daily pass (04:50, 16:50: clear of the :35 fast run, which takes up to ~10 min) and fast run (every 30 min); the CLI's lock keeps them apart
+50 4,16 * * * /Users/nicolaitanghoj/dev/realgm_db/local_cronjobs/run_job.sh sofascore-daily /Users/nicolaitanghoj/dev/sofascore/local_cronjobs/run_sofascore_daily.sh
 5,35 * * * * /Users/nicolaitanghoj/dev/realgm_db/local_cronjobs/run_job.sh sofascore-fast /Users/nicolaitanghoj/dev/sofascore/local_cronjobs/run_sofascore_fast.sh
 ```
 
