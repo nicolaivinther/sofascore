@@ -11,8 +11,13 @@
 Every command takes ``--dry-run`` (plan and report; write and fetch nothing), ``--sport`` and
 ``--tid``. The rules (fetch once when done, re-check +6h/+36h/+7d, freeze) are in ARCHITECTURE.md.
 
-Exit codes: 0 done (or cooling down after a block), 2 Sofascore refused us and the run stopped,
-3 too many items failed in a row and the run stopped.
+The daily pass is what queues the schedules (fixtures). If it has not planned for
+``DAILY_CATCH_UP_HOURS`` (it was skipped: another run held the lock, or a cooldown), the next fast
+run plans it as well; ``logs/sofascore_daily_planned_at`` records the last daily plan.
+
+Exit codes: 0 done (or a fast/backfill/work run skipped: lock held, or cooling down after a block),
+2 Sofascore refused us and the run stopped, 3 too many items failed in a row and the run stopped,
+4 a daily run skipped (lock held or cooling down) so it shows as failed; the next run catches up.
 """
 
 from __future__ import annotations
@@ -45,6 +50,7 @@ COLLECTOR_VERSION = "0.1.0"
 MAX_ATTEMPTS = 5
 EXIT_BLOCKED = 2
 EXIT_FAILING = 3
+EXIT_SKIPPED = 4  # a daily run that could not start; the next run that gets through catches up
 # This many items failing one after another stops the run: something is wrong beyond one page.
 MAX_CONSECUTIVE_ERRORS = 20
 # A season is frozen once its newest game is this old and nothing is scheduled or live.
@@ -62,6 +68,10 @@ BUDGET_MINUTES = {"fast": 25.0, "daily": 90.0, "backfill": 4320.0, "work": 4320.
 # stop at the first one.
 MAX_COOLDOWNS = {"backfill": 3, "work": 3}
 BLOCK_MARKER = "sofascore_blocked_until"
+# When the last full daily plan ran. The daily cron runs every 12 h (plus up to 5 min of jitter), so
+# a plan older than this means one was skipped, and the next fast run plans it too.
+DAILY_MARKER = "sofascore_daily_planned_at"
+DAILY_CATCH_UP_HOURS = 13.0
 BROWSER_PROFILES = "sofascore_browser_profiles"
 # How long `captcha` waits for the check to pass, and the page it then fetches.
 MANUAL_SOLVE_TIMEOUT_S = 300
@@ -305,6 +315,35 @@ class BlockPolicy:
         return until
 
 
+@dataclass
+class DailyClock:
+    """When the last full daily plan ran (``marker``), so a skipped daily can be caught up.
+
+    Only a plan of every league counts: a run limited by ``--tid``/``--sport`` gets no clock.
+    No marker (a new machine) counts as overdue.
+    """
+
+    marker: Path
+    catch_up_hours: float = DAILY_CATCH_UP_HOURS
+
+    def last_planned(self) -> datetime | None:
+        """The time of the last full daily plan, or None."""
+        if not self.marker.exists():
+            return None
+        return datetime.fromisoformat(self.marker.read_text(encoding="utf-8").strip())
+
+    def is_overdue(self, now: datetime | None = None) -> bool:
+        """True if no full daily plan ran in the last ``catch_up_hours``."""
+        last = self.last_planned()
+        now = now or datetime.now(UTC)
+        return last is None or now - last > timedelta(hours=self.catch_up_hours)
+
+    def record(self, now: datetime | None = None) -> None:
+        """Write the marker: a full daily plan was just queued."""
+        self.marker.parent.mkdir(parents=True, exist_ok=True)
+        self.marker.write_text((now or datetime.now(UTC)).isoformat(), encoding="utf-8")
+
+
 def work(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches
     conn: Any,
     client: SofascoreClient,
@@ -412,14 +451,35 @@ def _seed(conn: Any, items: list[planning.QueueItem], dry_run: bool) -> None:
     logger.info("queued or re-queued %d", added)
 
 
-def _plan(conn: Any, command: str, leagues: list[SofascoreLeague], sports: list[str], dry_run: bool) -> None:
+def plan(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    conn: Any,
+    command: str,
+    leagues: list[SofascoreLeague],
+    sports: list[str],
+    dry_run: bool,
+    clock: DailyClock | None = None,
+) -> None:
+    """Queue what ``command`` plans. A fast run also plans the daily when ``clock`` says the last
+    daily plan is overdue (a daily was skipped); a full daily plan updates ``clock``.
+    """
     with conn.cursor() as cur:
         if command == "backfill":
             _seed(conn, plan_backfill(leagues), dry_run)
-        elif command == "daily":
-            _seed(conn, plan_daily(cur, leagues, sports), dry_run)
         elif command == "fast":
             _seed(conn, plan_fast(cur, leagues, sports), dry_run)
+    daily = command == "daily"
+    if command == "fast" and clock is not None and clock.is_overdue():
+        last = clock.last_planned()
+        logger.warning(
+            "no daily plan since %s; the fast run plans the daily pass too",
+            last.isoformat() if last else "ever",
+        )
+        daily = True
+    if daily:
+        with conn.cursor() as cur:
+            _seed(conn, plan_daily(cur, leagues, sports), dry_run)
+        if clock is not None and not dry_run:
+            clock.record()
 
 
 def _collect(  # pylint: disable=too-many-arguments,too-many-positional-arguments
@@ -478,6 +538,21 @@ def _utc(epoch: float) -> str:
     return datetime.fromtimestamp(epoch, UTC).isoformat(timespec="seconds")
 
 
+def _daily_clock(args: argparse.Namespace, state_dir: Path) -> DailyClock | None:
+    """Only a plan of every league counts as the daily plan, and only then is one caught up."""
+    return DailyClock(state_dir / DAILY_MARKER) if args.tid is None and args.sport is None else None
+
+
+def _skipped(command: str) -> int:
+    """Exit code of a run that could not start: a daily shows as failed (nothing re-queued the
+    schedules; the next run catches up), the 30-minute fast run and by-hand runs exit 0.
+    """
+    if command == "daily":
+        logger.warning("daily pass skipped; the next run that gets through plans it")
+        return EXIT_SKIPPED
+    return 0
+
+
 def main(  # pylint: disable=too-many-return-statements,too-many-locals
     argv: Sequence[str] | None = None,
 ) -> int:
@@ -520,7 +595,7 @@ def main(  # pylint: disable=too-many-return-statements,too-many-locals
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             logger.info("another Sofascore run holds %s; exiting", LOCK_PATH)
-            return 0
+            return _skipped(args.command)
         policy = BlockPolicy(
             cooldown_minutes=config.SOFASCORE_COOLDOWN_MIN,
             max_cooldowns=MAX_COOLDOWNS.get(args.command, 0),
@@ -531,8 +606,8 @@ def main(  # pylint: disable=too-many-return-statements,too-many-locals
             logger.info(
                 "Sofascore refused us earlier; cooling down until %s, not asking now", until.isoformat()
             )
-            return 0
-        _plan(conn, args.command, leagues, sports, args.dry_run)
+            return _skipped(args.command)
+        plan(conn, args.command, leagues, sports, args.dry_run, _daily_clock(args, state_dir))
         if args.dry_run:
             return 0
         # The fast run does only its own games (and the teams/stats they bring); the backfill's

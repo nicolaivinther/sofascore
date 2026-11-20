@@ -32,6 +32,9 @@
   hour out and carries on (at most 3 times per run); a refusal on the first request after a
   cooldown, or in a cron run, stops the run (exit code 2, Sentry).
 - Twenty failed items in a row stop the run (exit code 3, Sentry) instead of burning the queue.
+- A daily run that cannot start (another run holds the lock, or a cooldown) exits 4, so the Cron
+  Jobs page shows it as failed; a fast run that cannot start exits 0. Either way the next run that
+  gets through catches the daily plan up (see Runs).
 - If refusals persist after cooldowns, the defence may have changed: re-probe by hand, never loop.
 - To look at the API by hand, open any `https://www.sofascore.com/api/v1/...` URL in a browser,
   or `fetch('/api/v1/...')` from a sofascore.com page. The category list
@@ -100,7 +103,12 @@ and `--max-minutes`/`--max-items`. One run at a time (`/tmp/sofascore_run.lock`)
 - **Daily pass** (`sofascore-daily`, 04:40 and 16:40): freezes finished seasons, then re-queues
   every league's tournament and season list and, per open season, results page 0, schedule page
   0 (the whole schedule is re-walked: new rounds, re-dates, postponements, cancellations), the
-  standings and the rounds. Unchanged pages are 304s.
+  standings and the rounds. Unchanged pages are 304s. This is the only run that fetches the
+  schedules (fixtures). A full daily plan (no `--tid`/`--sport`) writes
+  `logs/sofascore_daily_planned_at`.
+- **Daily catch-up**: if that marker is more than 13 hours old (or missing), a daily was skipped,
+  and the next fast run plans the daily pass as well. Its items (priority 50) are within the fast
+  run's limit, so that fast run and the ones after it work through them.
 - **Fast run** (`sofascore-fast`, every 30 min): `/event/{id}` for games that are not finished in
   our rows and started 100 minutes to 48 hours ago. A finished game then queues its
   stats and lineups. These items jump the queue; backfill items wait for the next daily.
