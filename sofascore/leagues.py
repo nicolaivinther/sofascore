@@ -133,6 +133,8 @@ LEAGUES: tuple[SofascoreLeague, ...] = (
     SofascoreLeague(18404, BASKETBALL, 512, "NBL1 Women, East"),
     SofascoreLeague(18552, BASKETBALL, 512, "NBL 1, Wildcard, Women"),
     SofascoreLeague(13488, BASKETBALL, 512, "NBL1, Women"),
+    # BAS-615: AO prices it, no Flashscore or Basketball API coverage.
+    SofascoreLeague(29034, BASKETBALL, 977, "Nationale 1"),
 )
 
 BY_TID: dict[int, SofascoreLeague] = {league.tid: league for league in LEAGUES}

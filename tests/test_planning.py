@@ -105,7 +105,8 @@ def test_refresh_steps_then_freeze():
 
 
 def test_league_list():
-    assert len(LEAGUES) == 105 and len(BY_TID) == 105
+    assert len(LEAGUES) == 106 and len(BY_TID) == 106
     assert {lg.sport for lg in LEAGUES} == {BASKETBALL}
     assert all(lg.sport.sofascore_sport for lg in LEAGUES)
     assert 28754 not in BY_TID and BY_TID[14251].canonical_league_id == 1143
+    assert BY_TID[29034].canonical_league_id == 977  # French NM1 (BAS-615)
