@@ -1,6 +1,7 @@
 """The Sofascore tournaments we collect (BAS-227): AO-priced, betsapi-primary canonical leagues, plus
 Pro B Germany and the Baltic women's league, which no other source serves any more, plus the leagues
-where Sofascore has player box scores and RealGM, Flashscore and Basketball API have no stats.
+where Sofascore has player box scores and RealGM, Flashscore and Basketball API have no stats, plus
+AO-priced leagues that Flashscore and Basketball API don't cover (French NM1, BAS-615).
 
 Club competitions only: no national-team contests and no 3x3.
 
@@ -133,6 +134,8 @@ LEAGUES: tuple[SofascoreLeague, ...] = (
     SofascoreLeague(18404, BASKETBALL, 512, "NBL1 Women, East"),
     SofascoreLeague(18552, BASKETBALL, 512, "NBL 1, Wildcard, Women"),
     SofascoreLeague(13488, BASKETBALL, 512, "NBL1, Women"),
+    # BAS-615: AO prices it, no Flashscore or Basketball API coverage.
+    SofascoreLeague(29034, BASKETBALL, 977, "Nationale 1"),
 )
 
 BY_TID: dict[int, SofascoreLeague] = {league.tid: league for league in LEAGUES}
