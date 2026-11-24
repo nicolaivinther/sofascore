@@ -6,7 +6,7 @@ the full published schedule), team and player match stats, and standings. Stored
 `basketball_stats` Postgres DB in `sofascore_*` tables; `realgm_db` maps them onto canonical later.
 
 The tournaments collected are in [`sofascore/leagues.py`](sofascore/leagues.py) (106 basketball leagues
-today; the list and how it was chosen: BAS-227).
+today; the list and how it was chosen: BAS-227, BAS-615).
 
 ## How it works
 

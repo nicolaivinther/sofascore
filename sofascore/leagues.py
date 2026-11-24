@@ -1,6 +1,7 @@
 """The Sofascore tournaments we collect (BAS-227): AO-priced, betsapi-primary canonical leagues, plus
 Pro B Germany and the Baltic women's league, which no other source serves any more, plus the leagues
-where Sofascore has player box scores and RealGM, Flashscore and Basketball API have no stats.
+where Sofascore has player box scores and RealGM, Flashscore and Basketball API have no stats, plus
+AO-priced leagues that Flashscore and Basketball API don't cover (French NM1, BAS-615).
 
 Club competitions only: no national-team contests and no 3x3.
 
